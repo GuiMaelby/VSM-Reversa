@@ -6,216 +6,299 @@
  
 <style>
 body {
-   font-family: Arial;
-   margin: 0;
-   display: flex;
-   background: #f5f5f5;
-}
- 
-/* SIDEBAR */
-.sidebar {
-   width: 220px;
-   background: #ffffff;
-   padding: 15px;
-   border-right: 2px solid #ddd;
-}
- 
-.sidebar h3 {
-   color: #d60000;
-}
- 
-.filter-btn {
-   display: block;
-   width: 100%;
-   margin: 5px 0;
-   padding: 8px;
-   border: none;
-   background: #eee;
-   cursor: pointer;
-   border-radius: 5px;
-}
- 
-.filter-btn:hover {
-   background: #d60000;
-   color: white;
-}
- 
-/* MAIN */
-.main {
-   flex: 1;
+    margin:0;
+    font-family: Arial;
+    background:#f4f4f4;
 }
  
 /* HEADER */
 .header {
-   background: #d60000;
-   color: white;
-   padding: 15px;
-   display: flex;
-   justify-content: space-between;
+    background:#DA291C;
+    color:white;
+    padding:15px;
+    display:flex;
+    align-items:center;
 }
  
-/* KPIs */
-.top-panel {
-   display: flex;
-   justify-content: center;
-   gap: 20px;
-   padding: 20px;
+.logo {
+    font-weight:bold;
+    font-size:22px;
+    margin-right:20px;
 }
  
-.kpi-box {
-   background: white;
-   width: 200px;
-   padding: 15px;
-   border-radius: 10px;
-   text-align: center;
-   border-top: 5px solid #d60000;
+.kpis {
+    display:flex;
+    gap:20px;
 }
  
-/* FLUXO */
-.flow {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
+.kpi {
+    background:white;
+    color:#333;
+    padding:10px;
+    border-radius:6px;
 }
  
+/* LAYOUT */
+.container {
+    display:flex;
+}
+ 
+/* FILTRO */
+.sidebar {
+    width:250px;
+    background:white;
+    padding:15px;
+    border-right:1px solid #ccc;
+}
+ 
+select {
+    width:100%;
+    padding:8px;
+}
+ 
+/* VSM */
+.vsm {
+    flex:1;
+    padding:20px;
+}
+ 
+/* ETAPAS */
 .stage {
-   background: white;
-   width: 240px;
-   padding: 12px;
-   margin: 6px 0;
-   border-radius: 10px;
-   text-align: center;
-   border-left: 6px solid #d60000;
-   transition: 0.3s;
+    background:white;
+    border-left:6px solid #DA291C;
+    padding:15px;
+    margin:10px auto;
+    width:320px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
 }
  
-/* Destaque */
+.stage:hover {
+    transform:scale(1.03);
+}
+ 
 .highlight {
-   background: #ffe5e5;
-   border-left: 6px solid #ff0000;
-   transform: scale(1.05);
+    background:#ffe5e3;
 }
  
-.arrow {
-   font-size: 20px;
+.line {
+    width:4px;
+    background:#DA291C;
+    height:30px;
+    margin:0 auto;
 }
  
-/* Paralelo */
-.parallel {
-   display: flex;
-   width: 100%;
-   justify-content: center;
+/* BIFURCAÇÃO */
+.branch-container {
+    display:flex;
+    justify-content:space-around;
 }
  
-.branch {
-   width: 40%;
-   display: flex;
-   flex-direction: column;
-   align-items: center;
+/* MODAL */
+.modal {
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    top:0;
+    left:0;
+    display:none;
+    justify-content:center;
+    align-items:center;
 }
  
-.proprio { border-left: 6px solid green; }
-.claro { border-left: 6px solid #d60000; }
+.modal-content {
+    background:white;
+    padding:20px;
+    width:600px;
+    border-radius:10px;
+}
  
+table {
+    width:100%;
+    border-collapse:collapse;
+}
+ 
+th, td {
+    border:1px solid #ccc;
+    padding:8px;
+}
+ 
+.close {
+    float:right;
+    cursor:pointer;
+    color:red;
+}
 </style>
 </head>
  
 <body>
  
-<!-- SIDEBAR -->
-<div class="sidebar">
-   <h3>Filtrar por Responsável</h3>
- 
-   <button class="filter-btn" onclick="filterSteps('all')">Todos</button>
-   <button class="filter-btn" onclick="filterSteps('Bernardino')">Bernardino</button>
-   <button class="filter-btn" onclick="filterSteps('Jeferson')">Jeferson Teixeira</button>
-   <button class="filter-btn" onclick="filterSteps('Fabricio')">Fabrício</button>
-   <button class="filter-btn" onclick="filterSteps('Demis')">Demis</button>
-</div>
- 
-<!-- MAIN -->
-<div class="main">
- 
+<!-- HEADER -->
 <div class="header">
-   <div><b>Claro</b></div>
-   <div>VSM - Esteira de Reversa</div>
+<div class="logo">CLARO</div>
+<div class="kpis">
+<div class="kpi">Lead Time Total<br><b>-- dias</b></div>
+<div class="kpi">Tipo de Fluxo<br><b>Reversa</b></div>
+</div>
 </div>
  
-<!-- KPI -->
-<div class="top-panel">
-   <div class="kpi-box">
-       <h4>Lead Time Total</h4>
-       <p id="lead">-- dias</p>
-   </div>
+<div class="container">
  
-   <div class="kpi-box">
-       <h4>Tipo Fluxo</h4>
-       <p>Sequencial + Paralelo</p>
-   </div>
+<!-- FILTRO -->
+<div class="sidebar">
+<h3>Filtro por Responsável</h3>
+<select id="filter">
+<option value="ALL">Todos</option>
+<option value="Bernardino">Bernardino</option>
+<option value="Jeferson">Jeferson</option>
+<option value="Leandro">Leandro</option>
+<option value="Cds">CDs</option>
+</select>
 </div>
  
-<!-- FLUXO -->
-<div class="flow">
+<!-- VSM -->
+<div class="vsm">
  
-   <div class="stage" data-owner="Bernardino">Retirada</div>
-   <div class="arrow">↓</div>
+    <!-- FLUXO PRINCIPAL -->
+<div class="stage" data-resp="Bernardino" onclick="openModal('retirada')">Retirada</div>
+<div class="line"></div>
  
-   <div class="stage" data-owner="Jeferson">Suspeito</div>
-   <div class="arrow">↓</div>
+    <div class="stage" data-resp="Jeferson" onclick="openModal('suspeito')">Suspeito</div>
+<div class="line"></div>
  
-   <div class="stage" data-owner="Jeferson">NF (Stefanini / EPO)</div>
-   <div class="arrow">↓</div>
+    <div class="stage" data-resp="Jeferson" onclick="openModal('nf')">NF (Stefanini / EPO)</div>
+<div class="line"></div>
  
-   <!-- paralelo -->
-   <div class="parallel">
+    <!-- BIFURCAÇÃO -->
+<div class="branch-container">
  
-       <!-- Próprio -->
-       <div class="branch">
-           <div class="stage proprio" data-owner="Jeferson">Agendamento</div>
-           <div class="arrow">↓</div>
-           <div class="stage proprio" data-owner="Demis">Entrega CD</div>
-       </div>
- 
-       <!-- Claro -->
-       <div class="branch">
-           <div class="stage claro" data-owner="Fabricio">TMS</div>
-           <div class="arrow">↓</div>
- 
-           <div class="stage claro" data-owner="Fabricio">Transp. Expedição</div>
-           <div class="arrow">↓</div>
- 
-           <div class="stage claro" data-owner="Fabricio">Solicita Agendamento</div>
-           <div class="arrow">↓</div>
- 
-           <div class="stage claro" data-owner="Demis">CD</div>
-       </div>
- 
-   </div>
- 
+        <!-- TRANSPORTE PRÓPRIO -->
+<div>
+<div class="stage" data-resp="Jeferson" onclick="openModal('tp')">Transporte Próprio</div>
+<div class="line"></div>
+<div class="stage" data-resp="Jeferson" onclick="openModal('agendamento')">Agendamento</div>
+<div class="line"></div>
+<div class="stage" data-resp="Cds" onclick="openModal('entrega')">Entrega CD</div>
 </div>
  
+        <!-- TRANSPORTE CLARO -->
+<div>
+<div class="stage" data-resp="Leandro" onclick="openModal('tms')">TMS</div>
+<div class="line"></div>
+<div class="stage" data-resp="Leandro" onclick="openModal('exp')">Transporte Expedição</div>
+<div class="line"></div>
+<div class="stage" data-resp="Leandro" onclick="openModal('solic')">Solicita Agendamento</div>
+<div class="line"></div>
+<div class="stage" data-resp="Cds" onclick="openModal('cd')">CD</div>
+</div>
+ 
+    </div>
+ 
+</div>
+</div>
+ 
+<!-- MODAL -->
+<div class="modal" id="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal()">X</span>
+<h3 id="title"></h3>
+<table id="table"></table>
+</div>
 </div>
  
 <script>
  
-// Lead time exemplo
-let total = [1,0.5,1,0.5,1,1,1].reduce((a,b)=>a+b,0);
-document.getElementById("lead").innerText = total + " dias";
+/* FILTRO */
+document.getElementById("filter").addEventListener("change", function() {
+    let val = this.value;
+    document.querySelectorAll(".stage").forEach(el => {
+        el.classList.remove("highlight");
  
-// Filtro interativo
-function filterSteps(owner) {
+        if(val === "ALL"){
+            el.style.opacity = "1";
+        } else {
+            if(el.dataset.resp === val){
+                el.classList.add("highlight");
+                el.style.opacity = "1";
+            } else {
+                el.style.opacity = "0.2";
+            }
+        }
+    });
+});
  
-   let stages = document.querySelectorAll(".stage");
+/* DADOS DRILL DOWN */
+const data = {
  
-   stages.forEach(stage => {
-       stage.classList.remove("highlight");
+retirada:[
+["Susp.", "Desconexão", "Qtd OS atendidas", "Netsms / Solar / NetSales / VDI"],
+["Susp.", "VT / Swap", "-", "Netsms / Solar / NetSales / VDI"]
+],
  
-       if(owner === "all") return;
+suspeito:[
+["Susp.", "Entrega na Parceira", "-", "-"],
+["Susp.", "Conferência / Leitura Serial", "-", "Stefanini"]
+],
  
-       if(stage.getAttribute("data-owner") === owner){
-           stage.classList.add("highlight");
-       }
-   });
+nf:[
+["Trânsito Reversa", "Emissão NF / Romaneio", "Data emissão", "SAP / Stefanini"]
+],
+ 
+tms:[
+["Trânsito Reversa", "Solicitação transporte", "Relatório monitoramento", "Portal Fretes"],
+["Trânsito Reversa", "Informar retirada", "Relatório monitoramento", "Portal Fretes"]
+],
+ 
+exp:[
+["Trânsito Reversa", "Retirada material", "-", "-"]
+],
+ 
+solic:[
+["Trânsito Reversa", "Portal transportador", "-", "-"]
+],
+ 
+cd:[
+["Trânsito Reversa", "Agendamento janela", "-", "-"],
+["Susp.", "Recebimento", "-", "SAP MB51"]
+],
+ 
+agendamento:[
+["Trânsito Reversa", "Portal transportador", "-", "-"]
+],
+ 
+entrega:[
+["Trânsito Reversa", "Agendamento", "-", "-"],
+["Susp.", "Recebimento", "-", "SAP MB51"]
+]
+ 
+};
+ 
+/* MODAL */
+function openModal(key){
+    let modal = document.getElementById("modal");
+    let table = document.getElementById("table");
+    let title = document.getElementById("title");
+ 
+    title.innerText = key.toUpperCase();
+ 
+    table.innerHTML = "<tr><th>Status</th><th>Processo</th><th>Dados</th><th>Sistema</th></tr>";
+ 
+    data[key].forEach(r=>{
+        table.innerHTML += `<tr>
+<td>${r[0]}</td>
+<td>${r[1]}</td>
+<td>${r[2]}</td>
+<td>${r[3]}</td>
+</tr>`;
+    });
+ 
+    modal.style.display="flex";
+}
+ 
+function closeModal(){
+    document.getElementById("modal").style.display="none";
 }
  
 </script>
