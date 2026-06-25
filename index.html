@@ -1,304 +1,346 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>VSM Reversa - Claro</title>
- 
-<style>
-body {
-    margin:0;
-    font-family: Arial;
-    background:#f4f4f4;
-}
- 
-/* HEADER */
-.header {
-    background:#DA291C;
-    color:white;
-    padding:15px;
-    display:flex;
-    align-items:center;
-}
- 
-.logo {
-    font-weight:bold;
-    font-size:22px;
-    margin-right:20px;
-}
- 
-.kpis {
-    display:flex;
-    gap:20px;
-}
- 
-.kpi {
-    background:white;
-    color:#333;
-    padding:10px;
-    border-radius:6px;
-}
- 
-/* LAYOUT */
-.container {
-    display:flex;
-}
- 
-/* FILTRO */
-.sidebar {
-    width:250px;
-    background:white;
-    padding:15px;
-    border-right:1px solid #ccc;
-}
- 
-select {
-    width:100%;
-    padding:8px;
-}
- 
-/* VSM */
-.vsm {
-    flex:1;
-    padding:20px;
-}
- 
-/* ETAPAS */
-.stage {
-    background:white;
-    border-left:6px solid #DA291C;
-    padding:15px;
-    margin:10px auto;
-    width:320px;
-    border-radius:8px;
-    cursor:pointer;
-    transition:0.3s;
-}
- 
-.stage:hover {
-    transform:scale(1.03);
-}
- 
-.highlight {
-    background:#ffe5e3;
-}
- 
-.line {
-    width:4px;
-    background:#DA291C;
-    height:30px;
-    margin:0 auto;
-}
- 
-/* BIFURCAÇÃO */
-.branch-container {
-    display:flex;
-    justify-content:space-around;
-}
- 
-/* MODAL */
-.modal {
-    position:fixed;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.6);
-    top:0;
-    left:0;
-    display:none;
-    justify-content:center;
-    align-items:center;
-}
- 
-.modal-content {
-    background:white;
-    padding:20px;
-    width:600px;
-    border-radius:10px;
-}
- 
-table {
-    width:100%;
-    border-collapse:collapse;
-}
- 
-th, td {
-    border:1px solid #ccc;
-    padding:8px;
-}
- 
-.close {
-    float:right;
-    cursor:pointer;
-    color:red;
-}
-</style>
-</head>
- 
-<body>
- 
-<!-- HEADER -->
-<div class="header">
-<div class="logo">CLARO</div>
-</div>
-</div>
- 
-<div class="container">
- 
-<!-- FILTRO -->
-<div class="sidebar">
-<h3>Filtro por Responsável</h3>
-<select id="filter">
-<option value="ALL">Todos</option>
-<option value="Bernardino">Bernardino</option>
-<option value="Jeferson">Jeferson</option>
-<option value="Leandro">Leandro</option>
-<option value="Cds">CDs</option>
-</select>
-</div>
- 
-<!-- VSM -->
-<div class="vsm">
- 
-    <!-- FLUXO PRINCIPAL -->
-<div class="stage" data-resp="Bernardino" onclick="openModal('retirada')">Retirada</div>
-<div class="line"></div>
- 
-    <div class="stage" data-resp="Jeferson" onclick="openModal('suspeito')">Suspeito</div>
-<div class="line"></div>
- 
-    <div class="stage" data-resp="Jeferson" onclick="openModal('nf')">NF (Stefanini / EPO)</div>
-<div class="line"></div>
- 
-    <!-- BIFURCAÇÃO -->
-<div class="branch-container">
- 
-        <!-- TRANSPORTE PRÓPRIO -->
-<div>
-<div class="stage" data-resp="Jeferson" onclick="openModal('tp')">Transporte Próprio</div>
-<div class="line"></div>
-<div class="stage" data-resp="Jeferson" onclick="openModal('agendamento')">Agendamento</div>
-<div class="line"></div>
-<div class="stage" data-resp="Cds" onclick="openModal('entrega')">Entrega CD</div>
-</div>
- 
-        <!-- TRANSPORTE CLARO -->
-<div>
-<div class="stage" data-resp="Leandro" onclick="openModal('tms')">TMS</div>
-<div class="line"></div>
-<div class="stage" data-resp="Leandro" onclick="openModal('exp')">Transporte Expedição</div>
-<div class="line"></div>
-<div class="stage" data-resp="Leandro" onclick="openModal('solic')">Solicita Agendamento</div>
-<div class="line"></div>
-<div class="stage" data-resp="Cds" onclick="openModal('cd')">CD</div>
-</div>
- 
-    </div>
- 
-</div>
-</div>
- 
-<!-- MODAL -->
-<div class="modal" id="modal">
-<div class="modal-content">
-<span class="close" onclick="closeModal()">X</span>
-<h3 id="title"></h3>
-<table id="table"></table>
-</div>
-</div>
- 
-<script>
- 
-/* FILTRO */
-document.getElementById("filter").addEventListener("change", function() {
-    let val = this.value;
-    document.querySelectorAll(".stage").forEach(el => {
-        el.classList.remove("highlight");
- 
-        if(val === "ALL"){
-            el.style.opacity = "1";
-        } else {
-            if(el.dataset.resp === val){
-                el.classList.add("highlight");
-                el.style.opacity = "1";
-            } else {
-                el.style.opacity = "0.2";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Interativo - VSM Esteira Reversa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        claro: {
+                            red: '#E31D1C',
+                            gray: {
+                                light: '#F5F5F5',
+                                medium: '#D9D9D9',
+                                dark: '#404040'
+                            }
+                        }
+                    }
+                }
             }
         }
-    });
-});
- 
-/* DADOS DRILL DOWN */
-const data = {
- 
-retirada:[
-["Susp.", "Desconexão", "Qtd OS atendidas", "Netsms / Solar / NetSales / VDI"],
-["Susp.", "VT / Swap", "-", "Netsms / Solar / NetSales / VDI"]
-],
- 
-suspeito:[
-["Susp.", "Entrega na Parceira", "-", "-"],
-["Susp.", "Conferência / Leitura Serial", "-", "Stefanini"]
-],
- 
-nf:[
-["Trânsito Reversa", "Emissão NF / Romaneio", "Data emissão", "SAP / Stefanini"]
-],
- 
-tms:[
-["Trânsito Reversa", "Solicitação transporte", "Relatório monitoramento", "Portal Fretes"],
-["Trânsito Reversa", "Informar retirada", "Relatório monitoramento", "Portal Fretes"]
-],
- 
-exp:[
-["Trânsito Reversa", "Retirada material", "-", "-"]
-],
- 
-solic:[
-["Trânsito Reversa", "Portal transportador", "-", "-"]
-],
- 
-cd:[
-["Trânsito Reversa", "Agendamento janela", "-", "-"],
-["Susp.", "Recebimento", "-", "SAP MB51"]
-],
- 
-agendamento:[
-["Trânsito Reversa", "Portal transportador", "-", "-"]
-],
- 
-entrega:[
-["Trânsito Reversa", "Agendamento", "-", "-"],
-["Susp.", "Recebimento", "-", "SAP MB51"]
-]
- 
-};
- 
-/* MODAL */
-function openModal(key){
-    let modal = document.getElementById("modal");
-    let table = document.getElementById("table");
-    let title = document.getElementById("title");
- 
-    title.innerText = key.toUpperCase();
- 
-    table.innerHTML = "<tr><th>Status</th><th>Processo</th><th>Dados</th><th>Sistema</th></tr>";
- 
-    data[key].forEach(r=>{
-        table.innerHTML += `<tr>
-<td>${r[0]}</td>
-<td>${r[1]}</td>
-<td>${r[2]}</td>
-<td>${r[3]}</td>
-</tr>`;
-    });
- 
-    modal.style.display="flex";
-}
- 
-function closeModal(){
-    document.getElementById("modal").style.display="none";
-}
- 
-</script>
- 
+    </script>
+    <style>
+        .step-card {
+            transition: all 0.3s ease;
+            border-bottom-width: 4px;
+            border-bottom-color: transparent;
+        }
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-bottom-color: #000000;
+        }
+        .step-card.active {
+            border-bottom-color: #E31D1C;
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-claro-gray-light font-sans text-claro-gray-dark min-h-screen">
+
+    <header class="bg-claro-red text-white shadow-md px-6 py-4 mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard Interativo do VSM</h1>
+                <p class="text-white/80 text-sm">Esteira de Processos de Logística Reversa</p>
+            </div>
+            <div class="bg-white/10 px-4 py-2 rounded-lg border border-white/20 text-center">
+                <span class="text-xs text-white/70 block uppercase font-semibold tracking-wider">Visão Geral</span>
+                <span class="text-sm font-medium text-white">5 Etapas Macro | Fluxo Ponta a Ponta</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-12">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            
+            <div id="card-etapa1" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="showDetails('etapa1')">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">1ª Etapa</span>
+                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-gray-dark/70 font-mono">Suspeito</span>
+                </div>
+                <h2 class="text-sm font-bold text-black mb-1">Desconexão</h2>
+                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Segregação entre as áreas técnica e logística.</p>
+                <div class="mt-3 pt-2 border-t border-claro-gray-medium flex justify-between text-[10px] text-claro-gray-dark/70">
+                    <span>⚡ 2 Sub-etapas</span>
+                    <span class="font-medium text-claro-red">Abrir →</span>
+                </div>
+            </div>
+
+            <div id="card-etapa2" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="showDetails('etapa2')">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">2ª Etapa</span>
+                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Trans. Rev.</span>
+                </div>
+                <h2 class="text-sm font-bold text-black mb-1">Emissão de NF</h2>
+                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Leitura de séries e emissão de NF Espelho.</p>
+                <div class="mt-3 pt-2 border-t border-claro-gray-medium flex justify-between text-[10px] text-claro-gray-dark/70">
+                    <span>⚡ 4 Sub-etapas</span>
+                    <span class="font-medium text-claro-red">Abrir →</span>
+                </div>
+            </div>
+
+            <div id="card-etapa3" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="showDetails('etapa3')">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">3ª Etapa</span>
+                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Trans. Rev.</span>
+                </div>
+                <h2 class="text-sm font-bold text-black mb-1">Transporte</h2>
+                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Fluxos de Transporte Claro e Próprio.</p>
+                <div class="mt-3 pt-2 border-t border-claro-gray-medium flex justify-between text-[10px] text-claro-gray-dark/70">
+                    <span>⚡ 2 Modos</span>
+                    <span class="font-medium text-claro-red">Abrir →</span>
+                </div>
+            </div>
+
+            <div id="card-etapa4" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="showDetails('etapa4')">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">4ª Etapa</span>
+                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Trans. Rev.</span>
+                </div>
+                <h2 class="text-sm font-bold text-black mb-1">Origem ao CD Prod.</h2>
+                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Transferência, recepção e internalização do estoque.</p>
+                <div class="mt-3 pt-2 border-t border-claro-gray-medium flex justify-between text-[10px] text-claro-gray-dark/70">
+                    <span>⚡ 8 Sub-etapas</span>
+                    <span class="font-medium text-claro-red">Abrir →</span>
+                </div>
+            </div>
+
+            <div id="card-etapa5" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="showDetails('etapa5')">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">5ª Etapa</span>
+                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-gray-dark/70 font-mono">Suspeito</span>
+                </div>
+                <h2 class="text-sm font-bold text-black mb-1">CD / Laboratório</h2>
+                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Triagem Go/No Go, recuperação de hardware e kits.</p>
+                <div class="mt-3 pt-2 border-t border-claro-gray-medium flex justify-between text-[10px] text-claro-gray-dark/70">
+                    <span>⚡ 3 Sub-etapas</span>
+                    <span class="font-medium text-claro-red">Abrir →</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="details-container" class="bg-white rounded-xl shadow-lg border-t-4 border-claro-red p-6 min-h-[300px]">
+            <div id="placeholder-text" class="flex flex-col items-center justify-center h-64 text-claro-gray-medium">
+                <svg class="w-16 h-16 mb-4 text-claro-gray-medium/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <p class="text-lg font-medium text-claro-gray-dark/70">Selecione uma etapa macro acima para detalhar o fluxo do VSM.</p>
+            </div>
+
+            <div id="dynamic-content" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-claro-gray-medium pb-4 mb-6 gap-2">
+                    <div class="flex items-center gap-3">
+                        <span id="det-tag" class="text-xs font-bold px-2.5 py-1 rounded-full uppercase mr-2 bg-claro-gray-medium/50 text-claro-gray-dark border border-claro-gray-medium"></span>
+                        <h3 id="det-title" class="text-xl font-bold text-black inline-block align-middle"></h3>
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-claro-gray-dark/70">Status do Material:</span>
+                        <span id="det-status" class="font-mono font-bold bg-claro-gray-light px-2 py-1 rounded ml-1 text-claro-red border border-claro-gray-medium"></span>
+                    </div>
+                </div>
+
+                <div id="det-flow" class="space-y-4">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const vsmData = {
+            etapa1: {
+                title: "Desconexão",
+                tag: "1ª Etapa",
+                status: "Suspeito",
+                flow: [
+                    { type: 'card', title: '2.1) VT / Swap', resp: 'Área Técnica', gestao: 'Ricardo Rosa', icon: '🔧' },
+                    { type: 'card', title: '3.1) Retirada', resp: 'Logística', gestao: 'Bernardino', icon: '📦' }
+                ]
+            },
+            etapa2: {
+                title: "Leitura de Séries e Emissão de NF Espelho",
+                tag: "2ª Etapa",
+                status: "Trans. Reversa",
+                flow: [
+                    { type: 'info', text: 'Gestão Geral da Etapa: <strong>Jeferson Teixeira</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4' },
+                    { type: 'card', title: '2.1) Leitura de Séries', resp: 'Stefanini', gestao: 'Jeferson Teixeira', icon: '🔍' },
+                    { type: 'card', title: '2.2) Emissão de NF Espelho', resp: 'Faturamento / Sistema Claro', gestao: 'Jeferson Teixeira', icon: '📄' },
+                    { type: 'card', title: '3) Emissão NF EPO', resp: 'EPO', gestao: 'Jeferson Teixeira', icon: '🧾' },
+                    { type: 'card', title: '4) Emissão de NF Triangulação', resp: 'Stefanini (Interestadual)', gestao: 'Jeferson Teixeira', icon: '🌐' }
+                ]
+            },
+            etapa3: {
+                title: "Fluxo de Transporte e Logística CD",
+                tag: "3ª Etapa",
+                status: "Trans. Reversa",
+                flow: [
+                    { type: 'split', title: 'Transporte Claro (Sem Flag)', gestao: 'Área Transporte', color: 'border-claro-gray-medium bg-claro-gray-light', iconColor: 'bg-claro-gray-dark', items: [
+                        '1.1) Solicitação TMS',
+                        '1.2) EPO emite o Romaneio',
+                        '1.3) Transporte agenda a coleta',
+                        '1.4) Expedição',
+                        '1.5) Agendamento com o CD',
+                        '1.6) Entrega no CD'
+                    ]},
+                    { type: 'split', title: 'Transporte Próprio (Com Flag)', gestao: 'Jeferson Teixeira', color: 'border-claro-red/40 bg-white', iconColor: 'bg-claro-red', items: [
+                        '2.1) EPO - Agendamento com o CD',
+                        '2.2) Emite o Romaneio',
+                        '2.3) Entrega no CD'
+                    ]}
+                ]
+            },
+            etapa4: {
+                title: "CD de Origem para o CD de Produção",
+                tag: "4ª Etapa",
+                status: "Trans. Reversa -> Suspeito",
+                flow: [
+                    { type: 'info', text: 'Gestão da Etapa: <strong>CD de Produção e Transporte</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4' },
+                    { type: 'card', title: '1) Solicitação do CD de Produção', resp: 'CD Produção', gestao: 'CD Produção / Transp.', icon: '📋', desc: 'Solicitação de separação e emissão de NF do volume em estoque.' },
+                    { type: 'card', title: '2) Separação e Conferência', resp: 'CD Origem', gestao: 'CD Produção / Transp.', icon: '🔢', desc: 'CD separa, confere o Nº de Série e emite a NF.' },
+                    { type: 'card', title: '3) Solicitação TMS', resp: 'Logística / Transportes', gestao: 'CD Produção / Transp.', icon: '💻', desc: 'Solicita transporte no sistema TMS.' },
+                    { type: 'card', title: '4) Emissão de Romaneio', resp: 'CD Origem', gestao: 'CD Produção / Transp.', icon: '📑', desc: 'Emissão do documento de Romaneio de carga.' },
+                    { type: 'card', title: '5) Coleta de Material', resp: 'Transportadora', gestao: 'CD Produção / Transp.', icon: '🚛', desc: 'O transporte coleta o material na Origem.' },
+                    { type: 'card', title: '6) Entrega no CD', resp: 'Transportadora', gestao: 'CD Produção / Transp.', icon: '🏢', desc: 'Entrega física realizada no CD de Produção.' },
+                    { type: 'card', title: '7) Recepção e Conferência', resp: 'CD Produção', gestao: 'CD Produção / Transp.', icon: '🤝', desc: 'CD recebe fisicamente e confere as séries.' },
+                    { type: 'card', title: '8) Internalização de Estoque', resp: 'Sistemas / CD Prod', gestao: 'CD Produção / Transp.', icon: '📥', desc: 'Mudança de status do lote para: <strong>Suspeito</strong>' }
+                ]
+            },
+            etapa5: {
+                title: "CD / Laboratório (Fluxo de Triagem e Recuperação)",
+                tag: "5ª Etapa",
+                status: "Suspeito / Variável",
+                flow: [
+                    { type: 'info', text: 'Gestão de Operação Técnica: <strong>Evandro</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4' },
+                    { type: 'card', title: '1) Solicitação de Insumos', resp: 'Laboratório', gestao: 'Evandro', icon: '🧪', desc: 'Laboratório solicita material para o CD. Status do material altera para: <span class="bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-mono text-xs font-bold">ULAB</span>' },
+                    { type: 'custom-tree', title: '2) Triagem Go / No Go', gestao: 'Evandro' },
+                    { type: 'card', title: '3) IPTV - Montagem de Kit TV', resp: 'Laboratório / Célula IPTV', gestao: 'Evandro', icon: '📺', desc: 'Montagem final do Kit de TV. Status atualizado para: <span class="bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded font-mono text-xs font-bold">UDEI</span>' }
+                ]
+            }
+        };
+
+        function resetCardStyles() {
+            const cards = document.querySelectorAll('.step-card');
+            cards.forEach(card => card.classList.remove('active'));
+        }
+
+        function showDetails(stageKey) {
+            const data = vsmData[stageKey];
+            const container = document.getElementById('dynamic-content');
+            const flowContainer = document.getElementById('det-flow');
+            
+            resetCardStyles();
+            document.getElementById(`card-${stageKey}`).classList.add('active');
+
+            document.getElementById('placeholder-text').classList.add('hidden');
+            container.classList.remove('hidden');
+
+            document.getElementById('det-tag').innerText = data.tag;
+            document.getElementById('det-title').innerText = data.title;
+            document.getElementById('det-status').innerText = data.status;
+
+            flowContainer.innerHTML = ''; 
+
+            data.flow.forEach(item => {
+                if (item.type === 'info') {
+                    const div = document.createElement('div');
+                    div.className = item.class;
+                    div.innerHTML = item.text;
+                    flowContainer.appendChild(div);
+                } 
+                else if (item.type === 'card') {
+                    const card = document.createElement('div');
+                    card.className = "flex items-start gap-4 p-4 bg-claro-gray-light rounded-lg border border-claro-gray-medium transition-colors hover:bg-white";
+                    card.innerHTML = `
+                        <div class="text-2xl p-2 bg-white rounded-lg border border-claro-gray-medium shrink-0">${item.icon}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1 w-full">
+                            <div>
+                                <span class="text-xs font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Sub-etapa</span>
+                                <span class="text-base font-bold text-black">${item.title}</span>
+                                ${item.desc ? `<p class="text-xs text-claro-gray-dark mt-1">${item.desc}</p>` : ''}
+                            </div>
+                            <div>
+                                <span class="text-xs font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Responsabilidade</span>
+                                <span class="text-sm font-medium text-black bg-claro-gray-medium/50 px-2 py-0.5 rounded-sm inline-block mt-0.5 border border-claro-gray-medium">${item.resp}</span>
+                            </div>
+                            <div>
+                                <span class="text-xs font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Gestão</span>
+                                <span class="text-sm text-claro-gray-dark font-semibold flex items-center gap-1.5 mt-0.5">
+                                    <span class="w-2 h-2 rounded-full bg-claro-red shrink-0"></span> ${item.gestao}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    flowContainer.appendChild(card);
+                } 
+                else if (item.type === 'split') {
+                    const splitBox = document.createElement('div');
+                    splitBox.className = `p-5 rounded-xl border-2 ${item.color} mb-4 shadow-xs`;
+                    
+                    let itemsHtml = '';
+                    item.items.forEach((step, index) => {
+                        itemsHtml += `
+                            <div class="flex items-center gap-2.5 p-3 bg-white rounded-lg border border-claro-gray-medium">
+                                <span class="w-6 h-6 flex items-center justify-center rounded-full ${item.iconColor} text-white text-xs font-bold shrink-0">${index + 1}</span>
+                                <span class="text-sm font-medium text-claro-gray-dark">${step}</span>
+                            </div>
+                        `;
+                    });
+
+                    splitBox.innerHTML = `
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-claro-gray-medium pb-3 mb-4 gap-1">
+                            <h4 class="font-bold text-black flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-sm ${item.iconColor}"></span>
+                                ${item.title}
+                            </h4>
+                            <span class="text-xs font-medium text-claro-gray-dark/70">Gestão: <strong class="text-black">${item.gestao}</strong></span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${itemsHtml}
+                        </div>
+                    `;
+                    flowContainer.appendChild(splitBox);
+                }
+                else if (item.type === 'custom-tree') {
+                    const treeBox = document.createElement('div');
+                    treeBox.className = "p-5 rounded-xl border border-claro-gray-medium bg-claro-gray-light";
+                    treeBox.innerHTML = `
+                        <div class="border-b border-claro-gray-medium pb-2 mb-4">
+                            <h4 class="font-bold text-black flex items-center gap-2">🔄 ${item.title}</h4>
+                            <span class="text-xs text-claro-gray-dark/70">Gestão operacional da mesa de triagem: <strong>${item.gestao}</strong></span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-white rounded-lg border-l-4 border-l-emerald-500 shadow-xs">
+                                <span class="text-xs uppercase font-bold text-emerald-600 block mb-1">Caminho 2.1</span>
+                                <h5 class="font-bold text-slate-900 text-sm">🟢 GOOD</h5>
+                                <p class="text-xs text-slate-600 mt-1">Material aprovado diretamente sem necessidade de intervenção pesada.</p>
+                                <div class="mt-3">
+                                    <span class="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-200">Status Novo: USAD</span>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-white rounded-lg border-l-4 border-l-claro-red shadow-xs">
+                                <span class="text-xs uppercase font-bold text-claro-red block mb-1">Caminho 2.2</span>
+                                <h5 class="font-bold text-slate-900 text-sm">🔴 NO GOOD (Recuperação)</h5>
+                                <p class="text-xs text-slate-600 mt-1">Material reprovado na triagem inicial. Encaminhado para a célula técnica.</p>
+                                <div class="mt-2 bg-claro-gray-light p-2 rounded text-xs text-claro-gray-dark space-y-1">
+                                    <p class="font-semibold">Sub-reparos ativos (2.2.1):</p>
+                                    <ul class="list-disc pl-4 space-y-0.5 text-[11px]">
+                                        <li>Recuperação de placa / Soldagem <strong>BGA</strong></li>
+                                        <li>Troca de componentes / <strong>BER</strong></li>
+                                        <li>Acabamento estético e <strong>Pintura</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    flowContainer.appendChild(treeBox);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
