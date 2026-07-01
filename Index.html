@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Claro | Dashboard BPMN — Esteira da Reversa (Transporte Próprio)</title>
+<style>
+  :root{
+    --claro-red:#DA291C;
+    --claro-red-dark:#A8201A;
+    --claro-black:#1A1A1A;
+    --claro-gray:#58595B;
+    --claro-light:#F4F4F5;
+    --lane-b:#FBEAE8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Arial,Helvetica,sans-serif;background:var(--claro-light);color:var(--claro-black);}
+  header{
+    background:linear-gradient(90deg,var(--claro-black) 0%, var(--claro-red) 45%, var(--claro-red-dark) 100%);
+    color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand .mark{width:42px;height:42px;border-radius:10px;background:#fff;color:var(--claro-red);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;letter-spacing:-1px;}
+  .brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px;}
+  .brand p{margin:2px 0 0;font-size:12px;opacity:.85;font-weight:400;}
+  .header-tag{font-size:11px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-weight:600;letter-spacing:.5px;}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:#fff;border-bottom:1px solid #e3e3e3;flex-wrap:wrap;gap:10px;}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--claro-gray);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .lg-shape{display:inline-block;width:16px;height:16px;}
+  .lg-task{background:#fff;border:2px solid var(--claro-red);border-radius:4px;}
+  .lg-ev{background:var(--claro-red);border-radius:50%;}
+  .lg-div{width:18px;height:0;border-top:2px dashed #8A8A8A;}
+
+  .zoom-controls{display:flex;gap:6px;align-items:center;}
+  .zoom-controls button{width:30px;height:30px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:15px;font-weight:700;color:var(--claro-red);}
+  .zoom-controls button:hover{background:var(--claro-light);}
+  .zoom-controls span{font-size:12px;color:var(--claro-gray);width:42px;text-align:center;}
+
+  .kpis{display:flex;gap:14px;flex-wrap:wrap;}
+  .kpi-card{background:#fff;border:1px solid #eee;border-left:4px solid var(--claro-red);border-radius:8px;padding:8px 14px;min-width:170px;}
+  .kpi-card .kval{font-size:18px;font-weight:800;color:var(--claro-black);}
+  .kpi-card .klabel{font-size:10.5px;color:var(--claro-gray);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+  .main{display:flex;align-items:flex-start;}
+  .lanes-sidebar{flex:0 0 190px;background:#fff;border-right:2px solid var(--claro-red);position:sticky;left:0;z-index:5;box-shadow:2px 0 6px rgba(0,0,0,.06);}
+  .lane-row{height:150px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid #eee;}
+  .lane-row:first-child{margin-top:50px;}
+  .lane-row.alt{background:var(--lane-b);}
+  .lane-row .ltitle{font-size:12.5px;font-weight:700;color:var(--claro-black);line-height:1.3;}
+  .lane-row .lsub{font-size:10.5px;color:var(--claro-gray);font-weight:500;display:block;margin-top:3px;}
+  .lane-row .dot{width:8px;height:8px;border-radius:50%;background:var(--claro-red);display:inline-block;margin-right:6px;}
+
+  .canvas-wrap{flex:1;overflow-x:auto;overflow-y:hidden;background:#fff;}
+  .canvas-scale{transform-origin:top left;transition:transform .15s ease;}
+
+  svg .node{cursor:pointer;}
+  svg .node rect, svg .node circle{transition:filter .12s ease;}
+  svg .node:hover rect{filter:drop-shadow(0 0 4px rgba(218,41,28,.55));}
+  svg text{font-family:'Segoe UI',Arial,sans-serif;}
+  svg .lbl{font-size:12.5px;font-weight:600;fill:var(--claro-black);}
+  svg .evlbl{font-size:12px;font-weight:700;fill:#fff;}
+  svg .edgelbl{font-size:10.5px;font-weight:600;fill:var(--claro-gray);}
+  svg .phaselbl{font-size:12px;font-weight:700;fill:var(--claro-red);letter-spacing:1px;}
+  svg .slalbl{font-size:10px;font-weight:700;fill:#A8201A;}
+
+  #detail{position:fixed;right:0;top:0;height:100%;width:340px;background:#fff;border-left:3px solid var(--claro-red);
+    box-shadow:-4px 0 16px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .25s ease;z-index:50;display:flex;flex-direction:column;}
+  #detail.open{transform:translateX(0);}
+  #detail .dhead{background:var(--claro-red);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;}
+  #detail .dhead h2{margin:0;font-size:15px;font-weight:700;}
+  #detail .dhead .step{font-size:11px;opacity:.85;margin-top:4px;display:block;}
+  #detail .dclose{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;}
+  #detail .dbody{padding:18px 20px;font-size:13.5px;line-height:1.55;color:#333;overflow-y:auto;}
+  #detail .dbody .field-label{font-size:11px;text-transform:uppercase;color:var(--claro-red);font-weight:700;letter-spacing:.5px;margin-top:14px;}
+  #detail .dbody .field-label:first-child{margin-top:0;}
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:40;}
+  #overlay.show{opacity:1;pointer-events:auto;}
+
+  footer{padding:10px 24px;font-size:11px;color:var(--claro-gray);background:#fff;border-top:1px solid #eee;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark">C</div>
+    <div>
+      <h1>Esteira da Reversa — Fluxo Transporte Próprio</h1>
+      <p>Diagrama BPMN horizontal · Raias por responsável de processo</p>
+    </div>
+  </div>
+  <div class="header-tag">CLARO · LOGÍSTICA REVERSA</div>
+</header>
+
+<div class="toolbar">
+  <div class="legend">
+    <span><i class="lg-shape lg-task"></i> Atividade (Tarefa)</span>
+    <span><i class="lg-shape lg-ev"></i> Evento (Início/Fim)</span>
+    <span><i class="lg-shape lg-div"></i> Marco de Fase</span>
+    <span>Clique em qualquer etapa para ver o detalhe do processo →</span>
+  </div>
+  <div class="zoom-controls">
+    <button onclick="zoom(-0.1)">−</button>
+    <span id="zlabel">100%</span>
+    <button onclick="zoom(0.1)">+</button>
+    <button onclick="zoom(0)" title="Reset">⟳</button>
+  </div>
+</div>
+
+<div class="toolbar" style="border-top:none;">
+  <div class="kpis" id="kpiBar"></div>
+</div>
+
+<div class="main">
+  <div class="lanes-sidebar" id="sidebar"></div>
+  <div class="canvas-wrap">
+    <div class="canvas-scale" id="scaleWrap">
+      <svg id="diagram" width="2650" height="700" viewBox="0 0 2650 700"></svg>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" onclick="closeDetail()"></div>
+<div id="detail">
+  <div class="dhead">
+    <div>
+      <h2 id="dtitle">—</h2>
+      <span class="step" id="dstep">—</span>
+    </div>
+    <button class="dclose" onclick="closeDetail()">×</button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</div>
+
+<footer>Fonte: Esteira da Reversa - Fluxo Transporte Próprio · Etapas 1–7 + Conclusão (Etapa 12) · Responsáveis: EPO/Técnicos, EPO, Stefanini, OPL/CD de Produção</footer>
+
+<script>
+/* ===================== LANES ===================== */
+const lanes = [
+  {id:'L1', y:125, name:'EPO / Técnicos', sub:'Campo'},
+  {id:'L2', y:275, name:'EPO', sub:'Solicitante / Sistema'},
+  {id:'L3', y:425, name:'Stefanini', sub:'Qualitor / Documental'},
+  {id:'L4', y:575, name:'OPL / CD', sub:'CD de Produção'},
+];
+
+/* ===================== NODES ===================== */
+const nodes = [
+  {id:'start', lane:'L1', x:100,  type:'start', lines:['Início']},
+
+  {id:'n1', lane:'L1', x:300,  type:'task', lines:['Retirada de','Terminais/Acessórios'],
+    step:'Etapa 1', resp:'EPO / Técnicos', sla:null,
+    desc:'Técnicos retiram Terminais/Acessórios dos clientes em campo.'},
+
+  {id:'n2', lane:'L2', x:520,  type:'task', lines:['Solicitação','de Reversa'],
+    step:'Etapa 2', resp:'EPO', sla:'Até 2 dias',
+    desc:'EPO solicita a Reversa de Terminais e acessórios, conforme calendarização definida.'},
+
+  {id:'n3', lane:'L3', x:740,  type:'task', lines:['Emissão NF','Espelho (Qualitor)'],
+    step:'Etapa 3', resp:'Stefanini', sla:'Até 2 dias',
+    desc:'Solicitação é recebida no Qualitor. Stefanini emite as NF\'s espelho e realiza a movimentação de seriais e disponibilização aos parceiros.'},
+
+  {id:'n4', lane:'L2', x:960,  type:'task', lines:['Emissão de NF\'s /','Input nos Sistemas'],
+    step:'Etapa 4', resp:'EPO', sla:'Até 4 dias',
+    desc:'EPO realiza o recebimento da NF em seu sistema e emite NF\'s iguais às NF\'s espelho (1 NF Alto Giro, 1 NF Baixo Giro e 1 NF de Acessórios). Realiza o input no Qualitor e no Portal de Terceiros.'},
+
+  {id:'n6', lane:'L3', x:1300, type:'task', lines:['Valida NF\'s e','Packlist'],
+    step:'Etapa 6', resp:'Stefanini', sla:'Até 1 dia',
+    desc:'Stefanini valida os dados das NF\'s e do Packlist para contratação do transporte. Nesta variante (Transporte Próprio) não há cotação externa nem canal vermelho — o fluxo segue direto para o CD de Produção.'},
+
+  {id:'n7a', lane:'L4', x:1520, type:'task', lines:['Agendamento de','Recebimento'],
+    step:'Etapa 7 (parte 1)', resp:'OPL / CD de Produção', sla:'Até 2 dias',
+    desc:'OPL/CD realiza o agendamento de recebimento da reversa.'},
+
+  {id:'n7b', lane:'L4', x:1740, type:'task', lines:['Recebimento','por NF'],
+    step:'Etapa 7 (parte 2)', resp:'OPL / CD de Produção', sla:'Até 5 dias',
+    desc:'Realiza o recebimento por NF, separando fisicamente os equipamentos em pallets de Alto e Baixo Giro.'},
+
+  {id:'n7c', lane:'L4', x:1960, type:'task', lines:['Disponibiliza ao','Laboratório'],
+    step:'Etapa 7 (parte 3)', resp:'OPL / CD de Produção', sla:'Até 4 dias',
+    desc:'Disponibiliza ao laboratório os equipamentos de Alto Giro e seus respectivos acessórios.'},
+
+  {id:'n7d', lane:'L4', x:2180, type:'task', lines:['Disponibiliza em','Estoque (Go/No Go)'],
+    step:'Etapa 7 (parte 4)', resp:'OPL / CD de Produção', sla:'Até 3 dias',
+    desc:'Disponibiliza os materiais em estoque, com checagem Go/No Go.'},
+
+  {id:'end', lane:'L4', x:2420, type:'end', lines:['Fim'],
+    step:'Etapa 12', resp:'—', sla:null,
+    desc:'Processo de Reversa (Transporte Próprio) finalizado.'},
+];
+
+/* ===================== EDGES ===================== */
+const edges = [
+  ['start','n1'],['n1','n2'],['n2','n3'],['n3','n4'],['n4','n6'],
+  ['n6','n7a'],['n7a','n7b'],['n7b','n7c'],['n7c','n7d'],['n7d','end'],
+];
+
+/* ===================== RENDER ===================== */
+const laneById = Object.fromEntries(lanes.map(l=>[l.id,l]));
+const nodeById = Object.fromEntries(nodes.map(n=>[n.id,n]));
+
+function ny(n){ return laneById[n.lane].y + (n.yOff||0); }
+
+function anchors(n){
+  const y = ny(n);
+  return n.type==='task' ? {l:n.x-85, r:n.x+85, y} : {l:n.x-30, r:n.x+30, y};
+}
+
+function elbow(x1,y1,x2,y2){
+  if(Math.abs(y1-y2)<1) return `M${x1},${y1} L${x2},${y2}`;
+  const midx = x1 + (x2-x1)/2;
+  return `M${x1},${y1} L${midx},${y1} L${midx},${y2} L${x2},${y2}`;
+}
+
+function renderSidebar(){
+  const el = document.getElementById('sidebar');
+  el.innerHTML = lanes.map((l,i)=>`
+    <div class="lane-row ${i%2? 'alt':''}">
+      <div>
+        <span class="ltitle"><span class="dot"></span>${l.name}</span>
+        <span class="lsub">${l.sub}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderSVG(){
+  const svg = document.getElementById('diagram');
+  let s = '';
+
+  s += `<defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8A8A8A"/>
+    </marker>
+  </defs>`;
+
+  lanes.forEach((l,i)=>{
+    s += `<rect x="0" y="${l.y-75}" width="2650" height="150" fill="${i%2? '#FBEAE8':'#FFFFFF'}"/>`;
+  });
+  lanes.forEach(l=>{
+    s += `<line x1="0" y1="${l.y+75}" x2="2650" y2="${l.y+75}" stroke="#eee" stroke-width="1"/>`;
+  });
+
+  // phase divider (Transporte Próprio)
+  s += `<line x1="1080" y1="50" x2="1080" y2="650" stroke="#A8201A" stroke-width="2" stroke-dasharray="6,5"/>`;
+  s += `<text class="phaselbl" x="1090" y="70">FASE · TRANSPORTE PRÓPRIO</text>`;
+
+  edges.forEach(([a,b,label])=>{
+    const na = nodeById[a], nb = nodeById[b];
+    const A = anchors(na), B = anchors(nb);
+    const d = elbow(A.r, A.y, B.l, B.y);
+    s += `<path d="${d}" fill="none" stroke="#8A8A8A" stroke-width="1.8" marker-end="url(#arrow)"/>`;
+    if(label){
+      const mx = (A.r+B.l)/2, my = (A.y+B.y)/2 - 8;
+      s += `<text class="edgelbl" x="${mx}" y="${my}" text-anchor="middle">${label}</text>`;
+    }
+  });
+
+  nodes.forEach(n=>{
+    const y = ny(n);
+    const clickable = n.desc ? `onclick="showDetail('${n.id}')"` : '';
+    s += `<g class="node" ${clickable}>`;
+
+    if(n.type==='task'){
+      s += `<rect x="${n.x-85}" y="${y-35}" width="170" height="70" rx="10" fill="#FFFFFF" stroke="#DA291C" stroke-width="2"/>`;
+      s += textBlock(n.lines, n.x, y, 'lbl');
+      if(n.step) s += `<text class="edgelbl" x="${n.x}" y="${y+31}" text-anchor="middle" fill="#A8201A" font-weight="700">${n.step.split(' ').slice(0,2).join(' ')}</text>`;
+      if(n.sla) s += `<text class="slalbl" x="${n.x}" y="${y-42}" text-anchor="middle">SLA: ${n.sla}</text>`;
+    } else if(n.type==='start'){
+      s += `<circle cx="${n.x}" cy="${y}" r="28" fill="#1A8C3C" stroke="#0E5C26" stroke-width="2"/>`;
+      s += `<text class="evlbl" x="${n.x}" y="${y+4}" text-anchor="middle">▶</text>`;
+      s += textBlock(n.lines, n.x, y+48, 'lbl');
+    } else if(n.type==='end'){
+      s += `<circle cx="${n.x}" cy="${y}" r="30" fill="#DA291C" stroke="#7A140D" stroke-width="3"/>`;
+      s += `<text class="evlbl" x="${n.x}" y="${y+4}" text-anchor="middle">■</text>`;
+      s += textBlock(n.lines, n.x, y+48, 'lbl');
+    }
+    s += `</g>`;
+  });
+
+  svg.innerHTML = s;
+}
+
+function textBlock(lines, cx, cy, cls){
+  const lh = 15;
+  const startY = cy - ((lines.length-1)*lh)/2 + 4;
+  return `<text class="${cls}" x="${cx}" y="${startY}" text-anchor="middle">` +
+    lines.map((line,i)=>`<tspan x="${cx}" dy="${i===0?0:lh}">${line}</tspan>`).join('') +
+    `</text>`;
+}
+
+/* ===================== DETAIL PANEL ===================== */
+function showDetail(id){
+  const n = nodeById[id];
+  if(!n || !n.desc) return;
+  document.getElementById('dtitle').textContent = n.lines.join(' ');
+  document.getElementById('dstep').textContent = `${n.step}  ·  Responsável: ${n.resp}`;
+  document.getElementById('dbody').innerHTML = `
+    <div class="field-label">Descrição do processo</div>
+    <div>${n.desc}</div>
+    <div class="field-label">Raia / Responsável</div>
+    <div>${n.resp}</div>
+    ${n.sla? `<div class="field-label">SLA</div><div>${n.sla}</div>` : ''}
+  `;
+  document.getElementById('detail').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeDetail(){
+  document.getElementById('detail').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ===================== ZOOM ===================== */
+let scale = 1;
+function zoom(delta){
+  scale = delta===0 ? 1 : Math.min(1.4, Math.max(0.4, scale+delta));
+  document.getElementById('scaleWrap').style.transform = `scale(${scale})`;
+  document.getElementById('zlabel').textContent = Math.round(scale*100)+'%';
+}
+
+/* ===================== KPI BAR ===================== */
+function renderKPIs(){
+  const slaDays = {
+    'n2':2,'n3':2,'n4':4,'n6':1,'n7a':2,'n7b':5,'n7c':4,'n7d':3
+  };
+  const total = Object.values(slaDays).reduce((a,b)=>a+b,0);
+  const kpis = [
+    {label:'Etapas mapeadas', val:'7 + conclusão'},
+    {label:'Raias / responsáveis', val:'4'},
+    {label:'Lead time total estimado', val:total+' dias'},
+    {label:'Maior SLA individual', val:'5 dias (Recebimento NF)'},
+  ];
+  document.getElementById('kpiBar').innerHTML = kpis.map(k=>`
+    <div class="kpi-card"><div class="kval">${k.val}</div><div class="klabel">${k.label}</div></div>
+  `).join('');
+}
+
+renderSidebar();
+renderSVG();
+renderKPIs();
+</script>
+</body>
+</html>
