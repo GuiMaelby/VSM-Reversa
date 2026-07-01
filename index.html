@@ -1,650 +1,344 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard & Fluxograma VSM - Esteira Reversa</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        claro: {
-                            red: '#E31D1C',
-                            gray: {
-                                light: '#F5F5F5',
-                                medium: '#D9D9D9',
-                                dark: '#404040'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .step-card {
-            transition: all 0.3s ease;
-            border-bottom-width: 4px;
-            border-bottom-color: transparent;
-        }
-        .step-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
-        .step-card.active {
-            border-bottom-color: #E31D1C;
-            background-color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        /* Estilos do Fluxograma Macro */
-        .flow-node {
-            transition: all 0.3s ease;
-        }
-        .flow-node.active {
-            background-color: #E31D1C !important;
-            color: white !important;
-            border-color: #E31D1C !important;
-            transform: scale(1.03);
-            box-shadow: 0 4px 12px rgba(227, 29, 28, 0.25);
-        }
-        .flow-node.active span, .flow-node.active div, .flow-node.active p {
-            color: white !important;
-        }
-        /* Ocultar barra de rolagem mantendo a função */
-        .scroll-clean::-webkit-scrollbar {
-            height: 6px;
-        }
-        .scroll-clean::-webkit-scrollbar-track {
-            background: #F5F5F5;
-        }
-        .scroll-clean::-webkit-scrollbar-thumb {
-            background: #D9D9D9;
-            border-radius: 3px;
-        }
-        /* Estilos de Opacidade para Filtros Operacionais */
-        .filtered-out {
-            opacity: 0.25 !important;
-            filter: grayscale(60%);
-        }
-        .filtered-in {
-            border-color: #E31D1C !important;
-            box-shadow: 0 0 10px rgba(227, 29, 28, 0.15) !important;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Claro | Dashboard BPMN — Esteira da Reversa (Transporte Próprio)</title>
+<style>
+  :root{
+    --claro-red:#DA291C;
+    --claro-red-dark:#A8201A;
+    --claro-black:#1A1A1A;
+    --claro-gray:#58595B;
+    --claro-light:#F4F4F5;
+    --lane-b:#FBEAE8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Arial,Helvetica,sans-serif;background:var(--claro-light);color:var(--claro-black);}
+  header{
+    background:linear-gradient(90deg,var(--claro-black) 0%, var(--claro-red) 45%, var(--claro-red-dark) 100%);
+    color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand .mark{width:42px;height:42px;border-radius:10px;background:#fff;color:var(--claro-red);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;letter-spacing:-1px;}
+  .brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px;}
+  .brand p{margin:2px 0 0;font-size:12px;opacity:.85;font-weight:400;}
+  .header-tag{font-size:11px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-weight:600;letter-spacing:.5px;}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:#fff;border-bottom:1px solid #e3e3e3;flex-wrap:wrap;gap:10px;}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--claro-gray);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .lg-shape{display:inline-block;width:16px;height:16px;}
+  .lg-task{background:#fff;border:2px solid var(--claro-red);border-radius:4px;}
+  .lg-ev{background:var(--claro-red);border-radius:50%;}
+  .lg-div{width:18px;height:0;border-top:2px dashed #8A8A8A;}
+
+  .zoom-controls{display:flex;gap:6px;align-items:center;}
+  .zoom-controls button{width:30px;height:30px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:15px;font-weight:700;color:var(--claro-red);}
+  .zoom-controls button:hover{background:var(--claro-light);}
+  .zoom-controls span{font-size:12px;color:var(--claro-gray);width:42px;text-align:center;}
+
+  .kpis{display:flex;gap:14px;flex-wrap:wrap;}
+  .kpi-card{background:#fff;border:1px solid #eee;border-left:4px solid var(--claro-red);border-radius:8px;padding:8px 14px;min-width:170px;}
+  .kpi-card .kval{font-size:18px;font-weight:800;color:var(--claro-black);}
+  .kpi-card .klabel{font-size:10.5px;color:var(--claro-gray);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+  .main{display:flex;align-items:flex-start;}
+  .lanes-sidebar{flex:0 0 190px;background:#fff;border-right:2px solid var(--claro-red);position:sticky;left:0;z-index:5;box-shadow:2px 0 6px rgba(0,0,0,.06);}
+  .lane-row{height:150px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid #eee;}
+  .lane-row:first-child{margin-top:50px;}
+  .lane-row.alt{background:var(--lane-b);}
+  .lane-row .ltitle{font-size:12.5px;font-weight:700;color:var(--claro-black);line-height:1.3;}
+  .lane-row .lsub{font-size:10.5px;color:var(--claro-gray);font-weight:500;display:block;margin-top:3px;}
+  .lane-row .dot{width:8px;height:8px;border-radius:50%;background:var(--claro-red);display:inline-block;margin-right:6px;}
+
+  .canvas-wrap{flex:1;overflow-x:auto;overflow-y:hidden;background:#fff;}
+  .canvas-scale{transform-origin:top left;transition:transform .15s ease;}
+
+  svg .node{cursor:pointer;}
+  svg .node rect, svg .node circle{transition:filter .12s ease;}
+  svg .node:hover rect{filter:drop-shadow(0 0 4px rgba(218,41,28,.55));}
+  svg text{font-family:'Segoe UI',Arial,sans-serif;}
+  svg .lbl{font-size:12.5px;font-weight:600;fill:var(--claro-black);}
+  svg .evlbl{font-size:12px;font-weight:700;fill:#fff;}
+  svg .edgelbl{font-size:10.5px;font-weight:600;fill:var(--claro-gray);}
+  svg .phaselbl{font-size:12px;font-weight:700;fill:var(--claro-red);letter-spacing:1px;}
+  svg .slalbl{font-size:10px;font-weight:700;fill:#A8201A;}
+
+  #detail{position:fixed;right:0;top:0;height:100%;width:340px;background:#fff;border-left:3px solid var(--claro-red);
+    box-shadow:-4px 0 16px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .25s ease;z-index:50;display:flex;flex-direction:column;}
+  #detail.open{transform:translateX(0);}
+  #detail .dhead{background:var(--claro-red);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;}
+  #detail .dhead h2{margin:0;font-size:15px;font-weight:700;}
+  #detail .dhead .step{font-size:11px;opacity:.85;margin-top:4px;display:block;}
+  #detail .dclose{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;}
+  #detail .dbody{padding:18px 20px;font-size:13.5px;line-height:1.55;color:#333;overflow-y:auto;}
+  #detail .dbody .field-label{font-size:11px;text-transform:uppercase;color:var(--claro-red);font-weight:700;letter-spacing:.5px;margin-top:14px;}
+  #detail .dbody .field-label:first-child{margin-top:0;}
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:40;}
+  #overlay.show{opacity:1;pointer-events:auto;}
+
+  footer{padding:10px 24px;font-size:11px;color:var(--claro-gray);background:#fff;border-top:1px solid #eee;}
+</style>
 </head>
-<body class="bg-claro-gray-light font-sans text-claro-gray-dark min-h-screen">
+<body>
 
-    <header class="bg-claro-red text-white shadow-md px-6 py-4 mb-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard Interativo do VSM</h1>
-                <p class="text-white/80 text-sm">Esteira de Processos de Logística Reversa</p>
-            </div>
-            <div class="bg-white/10 px-4 py-2 rounded-lg border border-white/20 text-center">
-                <span class="text-xs text-white/70 block uppercase font-semibold tracking-wider">Visão Geral</span>
-                <span class="text-sm font-medium text-white">5 Etapas Macro | Fluxo Ponta a Ponta</span>
-            </div>
-        </div>
-    </header>
+<header>
+  <div class="brand">
+    <div class="mark">C</div>
+    <div>
+      <h1>Esteira da Reversa — Fluxo Transporte Próprio</h1>
+      <p>Diagrama BPMN horizontal · Raias por responsável de processo</p>
+    </div>
+  </div>
+  <div class="header-tag">CLARO · LOGÍSTICA REVERSA</div>
+</header>
 
-    <main class="max-w-7xl mx-auto px-4 pb-12 space-y-6">
-        
-        <div class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-claro-gray-dark/80 mb-1">🔍 Área / Responsabilidade</label>
-                <select id="filter-resp" onchange="applyFilters()" class="w-full bg-claro-gray-light border border-claro-gray-medium rounded-lg p-2 text-xs font-semibold text-black focus:outline-none focus:border-claro-red">
-                    <option value="ALL">Mostrar Todas as Áreas</option>
-                    <option value="Área Técnica">Área Técnica</option>
-                    <option value="Logística">Logística</option>
-                    <option value="Stefanini">Stefanini</option>
-                    <option value="Faturamento / Sistema Claro">Faturamento / Sistema Claro</option>
-                    <option value="EPO">EPO</option>
-                    <option value="Transportadora">Transportadora</option>
-                    <option value="CD Origem">CD Origem</option>
-                    <option value="CD Produção">CD Produção</option>
-                    <option value="Laboratório">Laboratório</option>
-                    <option value="Laboratório / Célula IPTV">Laboratório / Célula IPTV</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-claro-gray-dark/80 mb-1">👤 Dono / Gestão</label>
-                <select id="filter-gestao" onchange="applyFilters()" class="w-full bg-claro-gray-light border border-claro-gray-medium rounded-lg p-2 text-xs font-semibold text-black focus:outline-none focus:border-claro-red">
-                    <option value="ALL">Mostrar Todos os Gestores</option>
-                    <option value="Ricardo Rosa">Ricardo Rosa</option>
-                    <option value="Bernardino">Bernardino</option>
-                    <option value="Jeferson Teixeira">Jeferson Teixeira</option>
-                    <option value="Área Transporte">Área Transporte</option>
-                    <option value="CD Produção / Transp.">CD Produção / Transp.</option>
-                    <option value="Evandro">Evandro</option>
-                </select>
-            </div>
-            <div>
-                <button onclick="resetFilters()" class="w-full px-4 py-2 bg-claro-gray-medium/50 text-claro-gray-dark hover:bg-claro-gray-medium font-bold text-xs uppercase tracking-wider rounded-lg transition-colors">
-                    Limpar Filtros Ativos
-                </button>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div id="card-etapa1" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="updateView('etapa1')">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">1ª Etapa</span>
-                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-gray-dark/70 font-mono">Suspeito</span>
-                </div>
-                <h2 class="text-sm font-bold text-black mb-1">Desconexão</h2>
-                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Segregação entre áreas técnica e logística.</p>
-            </div>
+<div class="toolbar">
+  <div class="legend">
+    <span><i class="lg-shape lg-task"></i> Atividade (Tarefa)</span>
+    <span><i class="lg-shape lg-ev"></i> Evento (Início/Fim)</span>
+    <span><i class="lg-shape lg-div"></i> Marco de Fase</span>
+    <span>Clique em qualquer etapa para ver o detalhe do processo →</span>
+  </div>
+  <div class="zoom-controls">
+    <button onclick="zoom(-0.1)">−</button>
+    <span id="zlabel">100%</span>
+    <button onclick="zoom(0.1)">+</button>
+    <button onclick="zoom(0)" title="Reset">⟳</button>
+  </div>
+</div>
 
-            <div id="card-etapa2" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="updateView('etapa2')">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">2ª Etapa</span>
-                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Trans. Rev.</span>
-                </div>
-                <h2 class="text-sm font-bold text-black mb-1">Emissão de NF</h2>
-                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Leitura de séries e emissão de NF Espelho.</p>
-            </div>
+<div class="toolbar" style="border-top:none;">
+  <div class="kpis" id="kpiBar"></div>
+</div>
 
-            <div id="card-etapa3" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="updateView('etapa3_semflag')">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">3ª Etapa</span>
-                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Trans. Rev.</span>
-                </div>
-                <h2 class="text-sm font-bold text-black mb-1">Transporte</h2>
-                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Fluxos paralelos condicionais: Sem Flag / Com Flag.</p>
-            </div>
+<div class="main">
+  <div class="lanes-sidebar" id="sidebar"></div>
+  <div class="canvas-wrap">
+    <div class="canvas-scale" id="scaleWrap">
+      <svg id="diagram" width="2650" height="700" viewBox="0 0 2650 700"></svg>
+    </div>
+  </div>
+</div>
 
-            <div id="card-etapa4" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="updateView('etapa4')">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">4ª Etapa</span>
-                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-red font-mono font-medium">Origem ao CD Prod.</span>
-                </div>
-                <h2 class="text-sm font-bold text-black mb-1">Origem ao CD Prod.</h2>
-                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Transferência, recepção e internalização.</p>
-            </div>
+<div id="overlay" onclick="closeDetail()"></div>
+<div id="detail">
+  <div class="dhead">
+    <div>
+      <h2 id="dtitle">—</h2>
+      <span class="step" id="dstep">—</span>
+    </div>
+    <button class="dclose" onclick="closeDetail()">×</button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</div>
 
-            <div id="card-etapa5" class="bg-white rounded-xl shadow-sm border border-claro-gray-medium p-4 step-card cursor-pointer" onclick="updateView('etapa5')">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="bg-claro-gray-medium/50 text-claro-gray-dark text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">5ª Etapa</span>
-                    <span class="text-[10px] bg-claro-gray-light px-1.5 py-0.5 rounded text-claro-gray-dark/70 font-mono">Suspeito</span>
-                </div>
-                <h2 class="text-sm font-bold text-black mb-1">CD / Laboratório</h2>
-                <p class="text-xs text-claro-gray-dark/90 line-clamp-2">Triagem Go/No Go e Recuperação técnica.</p>
-            </div>
-        </div>
+<footer>Fonte: Esteira da Reversa - Fluxo Transporte Próprio · Etapas 1–7 + Conclusão (Etapa 12) · Responsáveis: EPO/Técnicos, EPO, Stefanini, OPL/CD de Produção</footer>
 
-        <div id="details-container" class="bg-white rounded-xl shadow-md border-t-4 border-claro-red p-6 min-h-[200px]">
-            <div id="placeholder-text" class="flex flex-col items-center justify-center h-32 text-claro-gray-medium">
-                <svg class="w-10 h-10 mb-2 text-claro-gray-medium/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                <p class="text-sm font-medium text-claro-gray-dark/70">Selecione uma etapa ou ramificação abaixo para detalhar o fluxo operacional.</p>
-            </div>
+<script>
+/* ===================== LANES ===================== */
+const lanes = [
+  {id:'L1', y:125, name:'EPO / Técnicos', sub:'Campo'},
+  {id:'L2', y:275, name:'EPO', sub:'Solicitante / Sistema'},
+  {id:'L3', y:425, name:'Stefanini', sub:'Qualitor / Documental'},
+  {id:'L4', y:575, name:'OPL / CD', sub:'CD de Produção'},
+];
 
-            <div id="dynamic-content" class="hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-claro-gray-medium pb-4 mb-5 gap-2">
-                    <div class="flex items-center gap-2">
-                        <span id="det-tag" class="text-xs font-bold px-2 py-0.5 rounded-full uppercase bg-claro-gray-light text-claro-gray-dark border border-claro-gray-medium"></span>
-                        <h3 id="det-title" class="text-lg font-bold text-black"></h3>
-                    </div>
-                    <div class="text-sm">
-                        <span class="text-claro-gray-dark/70">Status Macro:</span>
-                        <span id="det-status" class="font-mono font-bold bg-claro-gray-light px-2 py-1 rounded ml-1 text-claro-red border border-claro-gray-medium"></span>
-                    </div>
-                </div>
-                <div id="det-flow" class="space-y-3"></div>
-            </div>
-        </div>
+/* ===================== NODES ===================== */
+const nodes = [
+  {id:'start', lane:'L1', x:100,  type:'start', lines:['Início']},
 
-        <div class="bg-white rounded-xl shadow-md p-6 border border-claro-gray-medium overflow-hidden">
-            <div class="mb-6">
-                <h3 class="text-base font-bold text-black flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-claro-red"></span>
-                    Fluxograma de Processo Conectado com Saídas Paralelas Ativas
-                </h3>
-                <p class="text-xs text-claro-gray-dark/70">Clique diretamente nos fluxos A ou B para abrir exclusivamente as sub-etapas do cenário de transporte desejado.</p>
-            </div>
+  {id:'n1', lane:'L1', x:300,  type:'task', lines:['Retirada de','Terminais/Acessórios'],
+    step:'Etapa 1', resp:'EPO / Técnicos', sla:null,
+    desc:'Técnicos retiram Terminais/Acessórios dos clientes em campo.'},
 
-            <div class="flex items-center justify-start lg:justify-between overflow-x-auto pb-4 pt-2 px-2 scroll-clean gap-0 min-w-[950px]">
-                
-                <div id="flow-node-etapa1" onclick="updateView('etapa1')" class="flow-node shrink-0 bg-white border border-claro-gray-medium rounded-xl p-3 w-44 text-center cursor-pointer hover:border-claro-red shadow-xs">
-                    <span class="text-[9px] uppercase tracking-wider block font-bold text-claro-gray-dark/60">1ª Etapa</span>
-                    <div class="text-xs font-bold text-black mt-0.5">Desconexão</div>
-                </div>
+  {id:'n2', lane:'L2', x:520,  type:'task', lines:['Solicitação','de Reversa'],
+    step:'Etapa 2', resp:'EPO', sla:'Até 2 dias',
+    desc:'EPO solicita a Reversa de Terminais e acessórios, conforme calendarização definida.'},
 
-                <div class="h-[2px] bg-claro-gray-medium flex-grow min-w-[30px]"></div>
+  {id:'n3', lane:'L3', x:740,  type:'task', lines:['Emissão NF','Espelho (Qualitor)'],
+    step:'Etapa 3', resp:'Stefanini', sla:'Até 2 dias',
+    desc:'Solicitação é recebida no Qualitor. Stefanini emite as NF\'s espelho e realiza a movimentação de seriais e disponibilização aos parceiros.'},
 
-                <div id="flow-node-etapa2" onclick="updateView('etapa2')" class="flow-node shrink-0 bg-white border border-claro-gray-medium rounded-xl p-3 w-44 text-center cursor-pointer hover:border-claro-red shadow-xs">
-                    <span class="text-[9px] uppercase tracking-wider block font-bold text-claro-gray-dark/60">2ª Etapa</span>
-                    <div class="text-xs font-bold text-black mt-0.5">Emissão de NF</div>
-                </div>
+  {id:'n4', lane:'L2', x:960,  type:'task', lines:['Emissão de NF\'s /','Input nos Sistemas'],
+    step:'Etapa 4', resp:'EPO', sla:'Até 4 dias',
+    desc:'EPO realiza o recebimento da NF em seu sistema e emite NF\'s iguais às NF\'s espelho (1 NF Alto Giro, 1 NF Baixo Giro e 1 NF de Acessórios). Realiza o input no Qualitor e no Portal de Terceiros.'},
 
-                <div class="h-[2px] bg-claro-gray-medium flex-grow min-w-[30px] relative flex items-center justify-end">
-                    <span class="absolute text-claro-gray-medium text-xs right-0 font-bold">➔</span>
-                </div>
+  {id:'n6', lane:'L3', x:1300, type:'task', lines:['Valida NF\'s e','Packlist'],
+    step:'Etapa 6', resp:'Stefanini', sla:'Até 1 dia',
+    desc:'Stefanini valida os dados das NF\'s e do Packlist para contratação do transporte. Nesta variante (Transporte Próprio) não há cotação externa nem canal vermelho — o fluxo segue direto para o CD de Produção.'},
 
-                <div class="shrink-0 flex flex-col gap-3 justify-center bg-claro-gray-light/60 p-2.5 rounded-xl border border-dashed border-claro-gray-medium relative">
-                    <span class="text-[8px] uppercase tracking-wider block font-bold text-claro-gray-dark/50 text-center absolute -top-5 left-0 right-0">3ª Etapa (Transporte)</span>
-                    
-                    <div id="flow-node-etapa3_semflag" onclick="updateView('etapa3_semflag')" class="flow-node bg-white border border-claro-gray-medium rounded-lg p-2.5 w-52 shadow-xs cursor-pointer hover:border-claro-red">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-bold text-slate-500 uppercase">Fluxo A</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        </div>
-                        <div class="text-xs font-bold text-black text-left mt-0.5">Transporte Sem Flag</div>
-                        <p class="text-[10px] text-claro-gray-dark/70 text-left">Segue fluxo regular via TMS Claro</p>
-                    </div>
+  {id:'n7a', lane:'L4', x:1520, type:'task', lines:['Agendamento de','Recebimento'],
+    step:'Etapa 7 (parte 1)', resp:'OPL / CD de Produção', sla:'Até 2 dias',
+    desc:'OPL/CD realiza o agendamento de recebimento da reversa.'},
 
-                    <div id="flow-node-etapa3_comflag" onclick="updateView('etapa3_comflag')" class="flow-node bg-white border border-claro-gray-medium rounded-lg p-2.5 w-52 shadow-xs cursor-pointer hover:border-claro-red">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-bold text-claro-red uppercase">Fluxo B</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-claro-red"></span>
-                        </div>
-                        <div class="text-xs font-bold text-black text-left mt-0.5">Transporte Com Flag</div>
-                        <p class="text-[10px] text-claro-gray-dark/70 text-left">Coleta própria / Agendamento Direto</p>
-                    </div>
-                </div>
+  {id:'n7b', lane:'L4', x:1740, type:'task', lines:['Recebimento','por NF'],
+    step:'Etapa 7 (parte 2)', resp:'OPL / CD de Produção', sla:'Até 5 dias',
+    desc:'Realiza o recebimento por NF, separando fisicamente os equipamentos em pallets de Alto e Baixo Giro.'},
 
-                <div class="h-[2px] bg-claro-gray-medium flex-grow min-w-[30px] relative flex items-center justify-start">
-                    <span class="absolute text-claro-gray-medium text-xs left-0 font-bold">➔</span>
-                </div>
+  {id:'n7c', lane:'L4', x:1960, type:'task', lines:['Disponibiliza ao','Laboratório'],
+    step:'Etapa 7 (parte 3)', resp:'OPL / CD de Produção', sla:'Até 4 dias',
+    desc:'Disponibiliza ao laboratório os equipamentos de Alto Giro e seus respectivos acessórios.'},
 
-                <div id="flow-node-etapa4" onclick="updateView('etapa4')" class="flow-node shrink-0 bg-white border border-claro-gray-medium rounded-xl p-3 w-44 text-center cursor-pointer hover:border-claro-red shadow-xs">
-                    <span class="text-[9px] uppercase tracking-wider block font-bold text-claro-gray-dark/60">4ª Etapa</span>
-                    <div class="text-xs font-bold text-black mt-0.5">Origem ao CD Prod.</div>
-                </div>
+  {id:'n7d', lane:'L4', x:2180, type:'task', lines:['Disponibiliza em','Estoque (Go/No Go)'],
+    step:'Etapa 7 (parte 4)', resp:'OPL / CD de Produção', sla:'Até 3 dias',
+    desc:'Disponibiliza os materiais em estoque, com checagem Go/No Go.'},
 
-                <div class="h-[2px] bg-claro-gray-medium flex-grow min-w-[30px]"></div>
+  {id:'end', lane:'L4', x:2420, type:'end', lines:['Fim'],
+    step:'Etapa 12', resp:'—', sla:null,
+    desc:'Processo de Reversa (Transporte Próprio) finalizado.'},
+];
 
-                <div id="flow-node-etapa5" onclick="updateView('etapa5')" class="flow-node shrink-0 bg-white border border-claro-gray-medium rounded-xl p-3 w-44 text-center cursor-pointer hover:border-claro-red shadow-xs">
-                    <span class="text-[9px] uppercase tracking-wider block font-bold text-claro-gray-dark/60">5ª Etapa</span>
-                    <div class="text-xs font-bold text-black mt-0.5">CD / Laboratório</div>
-                </div>
+/* ===================== EDGES ===================== */
+const edges = [
+  ['start','n1'],['n1','n2'],['n2','n3'],['n3','n4'],['n4','n6'],
+  ['n6','n7a'],['n7a','n7b'],['n7b','n7c'],['n7c','n7d'],['n7d','end'],
+];
 
-            </div>
+/* ===================== RENDER ===================== */
+const laneById = Object.fromEntries(lanes.map(l=>[l.id,l]));
+const nodeById = Object.fromEntries(nodes.map(n=>[n.id,n]));
 
-            <div id="subflow-container" class="mt-6 pt-5 border-t border-claro-gray-medium hidden bg-claro-gray-light/40 p-4 rounded-xl">
-                <div class="text-xs font-bold text-black mb-3 uppercase tracking-wider flex items-center gap-2">
-                    <span>🔀 Linha de Execução Sequencial:</span> 
-                    <span id="subflow-title-tag" class="text-claro-red font-extrabold"></span>
-                </div>
-                
-                <div id="subflow-nodes-axis" class="flex items-center gap-0 overflow-x-auto pb-2 pt-1 px-1 scroll-clean">
-                    </div>
-            </div>
-        </div>
-    </main>
+function ny(n){ return laneById[n.lane].y + (n.yOff||0); }
 
-    <script>
-        const vsmData = {
-            etapa1: {
-                title: "Desconexão", tag: "1ª Etapa", status: "Suspeito", macroKey: "etapa1",
-                subSteps: [
-                    { content: "2.1) VT / Swap<br><small class='text-slate-500'>Área Técnica</small>", resp: "Área Técnica", gestao: "Ricardo Rosa" },
-                    { content: "3.1) Retirada<br><small class='text-slate-500'>Logística (Bernardino)</small>", resp: "Desc", gestao: "Bernardino" }
-                ],
-                flow: [
-                    { type: 'card', title: '2.1) VT / Swap', resp: 'Área Técnica', gestao: 'Ricardo Rosa', icon: '🔧' },
-                    { type: 'card', title: '3.1) Retirada', resp: 'Logística', gestao: 'Bernardino', icon: '📦' }
-                ]
-            },
-            etapa2: {
-                title: "Leitura de Séries e Emissão de NF Espelho", tag: "2ª Etapa", status: "Suspeito ->Trans. Reversa", macroKey: "etapa2",
-                subSteps: [
-                    { content: "2.1) Leitura de Séries", resp: "Stefanini", gestao: "Jeferson Teixeira" },
-                    { content: "2.2) Emissão NF Espelho", resp: "Faturamento / Sistema Claro", gestao: "Jeferson Teixeira" },
-                    { content: "3) Emissão NF EPO", resp: "EPO", gestao: "Jeferson Teixeira" },
-                    { content: "4) NF Triangulação", resp: "Stefanini", gestao: "Jeferson Teixeira" }
-                ],
-                flow: [
-                    { type: 'info', text: 'Gestão Geral da Etapa: <strong>Jeferson Teixeira</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4', isInfo: true },
-                    { type: 'card', title: '2.1) Leitura de Séries', resp: 'Stefanini', gestao: 'Jeferson Teixeira', icon: '🔍' },
-                    { type: 'card', title: '2.2) Emissão de NF Espelho', resp: 'Faturamento / Sistema Claro', gestao: 'Jeferson Teixeira', icon: '📄' },
-                    { type: 'card', title: '3) Emissão NF EPO', resp: 'EPO', gestao: 'Jeferson Teixeira', icon: '🧾' },
-                    { type: 'card', title: '4) Emissão de NF Triangulação', resp: 'Stefanini', gestao: 'Jeferson Teixeira', icon: '🌐' }
-                ]
-            },
-            etapa3_semflag: {
-                title: "Transporte Claro (Fluxo Regular - Sem Flag)", tag: "3ª Etapa [Fluxo A]", status: "Trans. Reversa", macroKey: "etapa3",
-                subSteps: [
-                    { content: "1.1) Solicitação TMS", resp: "Transportadora", gestao: "Área Transporte" },
-                    { content: "1.2) Emissão Romaneio", resp: "EPO", gestao: "Área Transporte" },
-                    { content: "1.3) Coleta Transp.", resp: "Transportadora", gestao: "Área Transporte" },
-                    { content: "1.4) Expedição Carga", resp: "Transportadora", gestao: "Área Transporte" },
-                    { content: "1.5) Agendamento CD", resp: "Transportadora", gestao: "Área Transporte" },
-                    { content: "1.6) Entrega no CD", resp: "Transportadora", gestao: "Área Transporte" }
-                ],
-                flow: [
-                    { type: 'split', title: 'Transporte Claro (Cenário Sem Flag Ativo)', gestao: 'Área Transporte', color: 'border-claro-gray-medium bg-claro-gray-light', iconColor: 'bg-claro-gray-dark', 
-                      items: [
-                        { text: '1.1) Solicitação TMS', resp: 'Transportadora', gestao: 'Área Transporte' },
-                        { text: '1.2) EPO emite o Romaneio', resp: 'EPO', gestao: 'Área Transporte' },
-                        { text: '1.3) Transporte agenda a coleta', resp: 'Transportadora', gestao: 'Área Transporte' },
-                        { text: '1.4) Expedição de Volumes', resp: 'Transportadora', gestao: 'Área Transporte' },
-                        { text: '1.5) Agendamento de Janela com o CD', resp: 'Transportadora', gestao: 'Área Transporte' },
-                        { text: '1.6) Entrega Física realizada no CD', resp: 'Transportadora', gestao: 'Área Transporte' }
-                      ] 
-                    }
-                ]
-            },
-            etapa3_comflag: {
-                title: "Transporte Próprio (Fluxo Expresso - Com Flag)", tag: "3ª Etapa [Fluxo B]", status: "Trans. Reversa", macroKey: "etapa3",
-                subSteps: [
-                    { content: "2.1) Agendamento CD", resp: "EPO", gestao: "Jeferson Teixeira" },
-                    { content: "2.2) Romaneio Carga", resp: "EPO", gestao: "Jeferson Teixeira" },
-                    { content: "2.3) Entrega Física", resp: "Logística", gestao: "Jeferson Teixeira" }
-                ],
-                flow: [
-                    { type: 'split', title: 'Transporte Próprio (Cenário Com Flag Ativo)', gestao: 'Jeferson Teixeira', color: 'border-claro-red/40 bg-white', iconColor: 'bg-claro-red', 
-                      items: [
-                        { text: '2.1) EPO - Agendamento Direto com o CD', resp: 'EPO', gestao: 'Jeferson Teixeira' },
-                        { text: '2.2) Emissão imediata de Romaneio', resp: 'EPO', gestao: 'Jeferson Teixeira' },
-                        { text: '2.3) Entrega acelerada no CD', resp: 'Logística', gestao: 'Jeferson Teixeira' }
-                      ] 
-                    }
-                ]
-            },
-            etapa4: {
-                title: "CD de Origem para o CD de Produção", tag: "4ª Etapa", status: "Trans. Reversa -> Suspeito", macroKey: "etapa4",
-                subSteps: [
-                    { content: "1) Solicit. CD Prod", resp: "CD Produção", gestao: "CD Produção / Transp." },
-                    { content: "2) Separação Origem", resp: "CD Origem", gestao: "CD Produção / Transp." },
-                    { content: "3) Solicitação TMS", resp: "Logística", gestao: "CD Produção / Transp." },
-                    { content: "4) Romaneio Carga", resp: "CD Origem", gestao: "CD Produção / Transp." },
-                    { content: "5) Coleta Transp", resp: "Transportadora", gestao: "CD Produção / Transp." },
-                    { content: "6) Entrega Destino", resp: "Transportadora", gestao: "CD Produção / Transp." },
-                    { content: "7) Conf. Séries", resp: "CD Produção", gestao: "CD Produção / Transp." },
-                    { content: "8) Internaliza Estoque", resp: "CD Produção", gestao: "CD Produção / Transp." }
-                ],
-                flow: [
-                    { type: 'info', text: 'Gestão da Etapa: <strong>CD de Produção e Transporte</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4', isInfo: true },
-                    { type: 'card', title: '1) Solicitação do CD de Produção', resp: 'CD Produção', gestao: 'CD Produção / Transp.', icon: '📋', desc: 'Solicitação de separação e emissão de NF do volume em estoque.' },
-                    { type: 'card', title: '2) Separação e Conferência', resp: 'CD Origem', gestao: 'CD Produção / Transp.', icon: '🔢', desc: 'CD separa, confere o Nº de Série e emite a NF.' },
-                    { type: 'card', title: '3) Solicitação TMS', resp: 'Logística', gestao: 'CD Produção / Transp.', icon: '💻', desc: 'Solicita transporte no sistema TMS.' },
-                    { type: 'card', title: '4) Emissão de Romaneio', resp: 'CD Origem', gestao: 'CD Produção / Transp.', icon: '📑', desc: 'Emissão do documento de Romaneio de carga.' },
-                    { type: 'card', title: '5) Coleta de Material', resp: 'Transportadora', gestao: 'CD Produção / Transp.', icon: '🚛', desc: 'O transporte coleta o material na Origem.' },
-                    { type: 'card', title: '6) Entrega no CD', resp: 'Transportadora', gestao: 'CD Produção / Transp.', icon: '🏢', desc: 'Entrega física realizada no CD de Produção.' },
-                    { type: 'card', title: '7) Recepção e Conferência', resp: 'CD Produção', gestao: 'CD Produção / Transp.', icon: '🤝', desc: 'CD recebe fisicamente e confere as séries.' },
-                    { type: 'card', title: '8) Internalização de Estoque', resp: 'CD Produção', gestao: 'CD Produção / Transp.', icon: '📥', desc: 'Mudança de status do lote para: <strong>Suspeito</strong>' }
-                ]
-            },
-            etapa5: {
-                title: "CD / Laboratório (Fluxo de Triagem e Recuperação)", tag: "5ª Etapa", status: "Suspeito / Variável", macroKey: "etapa5",
-                subSteps: [
-                    { content: "1) Insumos (ULAB)", resp: "Laboratório", gestao: "Evandro" },
-                    { content: "2) Triagem Mesa", resp: "Laboratório", gestao: "Evandro" },
-                    { content: "2.1) OK (USAD)", resp: "Laboratório", gestao: "Evandro" },
-                    { content: "2.2) NOK (Reparo)", resp: "Laboratório", gestao: "Evandro" },
-                    { content: "3) Kit IPTV (UDEI)", resp: "Laboratório / Célula IPTV", gestao: "Evandro" }
-                ],
-                flow: [
-                    { type: 'info', text: 'Gestão de Operação Técnica: <strong>Evandro</strong>', class: 'bg-claro-gray-light text-black border-l-4 border-claro-red p-3 rounded text-sm mb-4', isInfo: true },
-                    { type: 'card', title: '1) Solicitação de Insumos', resp: 'Laboratório', gestao: 'Evandro', icon: '🧪', desc: 'Laboratório solicita material para o CD. Status altera para ULAB.' },
-                    { type: 'custom-tree', title: '2) Triagem Go / No Go', gestao: 'Evandro', resp: 'Laboratório' },
-                    { type: 'card', title: '3) IPTV - Montagem de Kit TV', resp: 'Laboratório / Célula IPTV', gestao: 'Evandro', icon: '📺', desc: 'Montagem final do Kit de TV. Status atualizado para UDEI.' }
-                ]
-            }
-        };
+function anchors(n){
+  const y = ny(n);
+  return n.type==='task' ? {l:n.x-85, r:n.x+85, y} : {l:n.x-30, r:n.x+30, y};
+}
 
-        let currentKey = null;
+function elbow(x1,y1,x2,y2){
+  if(Math.abs(y1-y2)<1) return `M${x1},${y1} L${x2},${y2}`;
+  const midx = x1 + (x2-x1)/2;
+  return `M${x1},${y1} L${midx},${y1} L${midx},${y2} L${x2},${y2}`;
+}
 
-        function resetVisualStates() {
-            document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active'));
-        }
+function renderSidebar(){
+  const el = document.getElementById('sidebar');
+  el.innerHTML = lanes.map((l,i)=>`
+    <div class="lane-row ${i%2? 'alt':''}">
+      <div>
+        <span class="ltitle"><span class="dot"></span>${l.name}</span>
+        <span class="lsub">${l.sub}</span>
+      </div>
+    </div>`).join('');
+}
 
-        function updateView(key) {
-            currentKey = key;
-            const data = vsmData[key];
-            if (!data) return;
+function renderSVG(){
+  const svg = document.getElementById('diagram');
+  let s = '';
 
-            resetVisualStates();
+  s += `<defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8A8A8A"/>
+    </marker>
+  </defs>`;
 
-            // 1. Ativar o Card Macro Superior e o Bloco exato clicado
-            document.getElementById(`card-${data.macroKey}`).classList.add('active');
-            document.getElementById(`flow-node-${key}`).classList.add('active');
+  lanes.forEach((l,i)=>{
+    s += `<rect x="0" y="${l.y-75}" width="2650" height="150" fill="${i%2? '#FBEAE8':'#FFFFFF'}"/>`;
+  });
+  lanes.forEach(l=>{
+    s += `<line x1="0" y1="${l.y+75}" x2="2650" y2="${l.y+75}" stroke="#eee" stroke-width="1"/>`;
+  });
 
-            // 2. Renderizar Painel Detalhado
-            document.getElementById('placeholder-text').classList.add('hidden');
-            const dynamicContent = document.getElementById('dynamic-content');
-            const flowContainer = document.getElementById('det-flow');
-            dynamicContent.classList.remove('hidden');
+  // phase divider (Transporte Próprio)
+  s += `<line x1="1080" y1="50" x2="1080" y2="650" stroke="#A8201A" stroke-width="2" stroke-dasharray="6,5"/>`;
+  s += `<text class="phaselbl" x="1090" y="70">FASE · TRANSPORTE PRÓPRIO</text>`;
 
-            document.getElementById('det-tag').innerText = data.tag;
-            document.getElementById('det-title').innerText = data.title;
-            document.getElementById('det-status').innerText = data.status;
-            flowContainer.innerHTML = '';
+  edges.forEach(([a,b,label])=>{
+    const na = nodeById[a], nb = nodeById[b];
+    const A = anchors(na), B = anchors(nb);
+    const d = elbow(A.r, A.y, B.l, B.y);
+    s += `<path d="${d}" fill="none" stroke="#8A8A8A" stroke-width="1.8" marker-end="url(#arrow)"/>`;
+    if(label){
+      const mx = (A.r+B.l)/2, my = (A.y+B.y)/2 - 8;
+      s += `<text class="edgelbl" x="${mx}" y="${my}" text-anchor="middle">${label}</text>`;
+    }
+  });
 
-            data.flow.forEach((item, index) => {
-                if (item.type === 'info') {
-                    const div = document.createElement('div');
-                    div.className = item.class;
-                    div.id = `det-item-${index}`;
-                    div.setAttribute('data-info', 'true');
-                    div.innerHTML = item.text;
-                    flowContainer.appendChild(div);
-                } 
-                else if (item.type === 'card') {
-                    const card = document.createElement('div');
-                    card.id = `det-item-${index}`;
-                    card.setAttribute('data-resp', item.resp);
-                    card.setAttribute('data-gestao', item.gestao);
-                    card.className = "flex items-start gap-4 p-3 bg-claro-gray-light rounded-lg border border-claro-gray-medium transition-all hover:bg-white";
-                    card.innerHTML = `
-                        <div class="text-lg p-2 bg-white rounded-lg border border-claro-gray-medium shrink-0">${item.icon}</div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1 w-full">
-                            <div>
-                                <span class="text-[9px] font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Sub-etapa</span>
-                                <span class="text-xs font-bold text-black">${item.title}</span>
-                                ${item.desc ? `<p class="text-[11px] text-claro-gray-dark mt-0.5">${item.desc}</p>` : ''}
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Responsabilidade</span>
-                                <span class="text-xs font-medium text-black bg-claro-gray-medium/40 px-1.5 py-0.5 rounded-sm inline-block mt-0.5 border border-claro-gray-medium">${item.resp}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-semibold text-claro-gray-dark/70 uppercase tracking-wider block">Gestão</span>
-                                <span class="text-xs text-claro-gray-dark font-semibold flex items-center gap-1.5 mt-0.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-claro-red shrink-0"></span> ${item.gestao}
-                                </span>
-                            </div>
-                        </div>
-                    `;
-                    flowContainer.appendChild(card);
-                } 
-                else if (item.type === 'split') {
-                    const splitBox = document.createElement('div');
-                    splitBox.id = `det-item-${index}`;
-                    splitBox.className = `p-4 rounded-xl border-2 ${item.color} mb-2 transition-all`;
-                    
-                    let itemsHtml = '';
-                    item.items.forEach((sub, sIdx) => {
-                        itemsHtml += `
-                            <div id="split-sub-${sIdx}" data-resp="${sub.resp}" data-gestao="${sub.gestao}" class="flex items-center gap-2 p-1.5 bg-white rounded-md border border-claro-gray-medium transition-all">
-                                <span class="w-4 h-4 flex items-center justify-center rounded-full ${item.iconColor} text-white text-[9px] font-bold shrink-0">${sIdx + 1}</span>
-                                <span class="text-xs font-medium text-claro-gray-dark">${sub.text}</span>
-                            </div>
-                        `;
-                    });
-                    splitBox.innerHTML = `
-                        <div class="flex justify-between items-center border-b border-claro-gray-medium pb-1.5 mb-2">
-                            <h4 class="font-bold text-xs text-black flex items-center gap-1">${item.title}</h4>
-                            <span class="text-[10px] text-claro-gray-dark/70">Gestão: <strong class="text-black">${item.gestao}</strong></span>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">${itemsHtml}</div>
-                    `;
-                    flowContainer.appendChild(splitBox);
-                }
-                else if (item.type === 'custom-tree') {
-                    const treeBox = document.createElement('div');
-                    treeBox.id = `det-item-${index}`;
-                    treeBox.setAttribute('data-resp', item.resp);
-                    treeBox.setAttribute('data-gestao', item.gestao);
-                    treeBox.className = "p-3 rounded-xl border border-claro-gray-medium bg-claro-gray-light transition-all";
-                    treeBox.innerHTML = `
-                        <div class="border-b border-claro-gray-medium pb-1.5 mb-2">
-                            <h4 class="font-bold text-xs text-black">🔄 ${item.title}</h4>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <div class="p-2.5 bg-white rounded-md border-l-4 border-l-emerald-500">
-                                <h5 class="font-bold text-emerald-700 text-xs">🟢 2.1) GOOD</h5>
-                                <p class="text-[11px] text-slate-600 mt-0.5">Status Novo: <strong class="font-mono text-emerald-600">USAD</strong></p>
-                            </div>
-                            <div class="p-2.5 bg-white rounded-md border-l-4 border-l-claro-red">
-                                <h5 class="font-bold text-claro-red text-xs">🔴 2.2) NO GOOD (Recuperação)</h5>
-                                <p class="text-[11px] text-slate-500 mt-0.5 font-medium">Reparos ativos: BER, BGA e Pintura.</p>
-                            </div>
-                        </div>
-                    `;
-                    flowContainer.appendChild(treeBox);
-                }
-            });
+  nodes.forEach(n=>{
+    const y = ny(n);
+    const clickable = n.desc ? `onclick="showDetail('${n.id}')"` : '';
+    s += `<g class="node" ${clickable}>`;
 
-            // 3. Renderizar Esteira Horizontal Inferior
-            const subflowContainer = document.getElementById('subflow-container');
-            const axisContainer = document.getElementById('subflow-nodes-axis');
-            document.getElementById('subflow-title-tag').innerText = `${data.tag} - ${data.title}`;
-            
-            axisContainer.innerHTML = '';
-            
-            data.subSteps.forEach((step, idx) => {
-                const stepNode = document.createElement('div');
-                stepNode.id = `axis-node-${idx}`;
-                stepNode.setAttribute('data-resp', step.resp);
-                stepNode.setAttribute('data-gestao', step.gestao);
-                stepNode.className = "shrink-0 bg-white border border-claro-gray-medium rounded-lg p-2 min-w-[160px] text-center shadow-xs border-b-2 border-b-claro-red/70 transition-all";
-                stepNode.innerHTML = `
-                    <span class="text-[9px] font-bold text-claro-red block">Passo 0${idx + 1}</span>
-                    <div class="text-[11px] font-bold text-black leading-tight mt-0.5">${step.content}</div>
-                `;
-                axisContainer.appendChild(stepNode);
+    if(n.type==='task'){
+      s += `<rect x="${n.x-85}" y="${y-35}" width="170" height="70" rx="10" fill="#FFFFFF" stroke="#DA291C" stroke-width="2"/>`;
+      s += textBlock(n.lines, n.x, y, 'lbl');
+      if(n.step) s += `<text class="edgelbl" x="${n.x}" y="${y+31}" text-anchor="middle" fill="#A8201A" font-weight="700">${n.step.split(' ').slice(0,2).join(' ')}</text>`;
+      if(n.sla) s += `<text class="slalbl" x="${n.x}" y="${y-42}" text-anchor="middle">SLA: ${n.sla}</text>`;
+    } else if(n.type==='start'){
+      s += `<circle cx="${n.x}" cy="${y}" r="28" fill="#1A8C3C" stroke="#0E5C26" stroke-width="2"/>`;
+      s += `<text class="evlbl" x="${n.x}" y="${y+4}" text-anchor="middle">▶</text>`;
+      s += textBlock(n.lines, n.x, y+48, 'lbl');
+    } else if(n.type==='end'){
+      s += `<circle cx="${n.x}" cy="${y}" r="30" fill="#DA291C" stroke="#7A140D" stroke-width="3"/>`;
+      s += `<text class="evlbl" x="${n.x}" y="${y+4}" text-anchor="middle">■</text>`;
+      s += textBlock(n.lines, n.x, y+48, 'lbl');
+    }
+    s += `</g>`;
+  });
 
-                if (idx < data.subSteps.length - 1) {
-                    const connector = document.createElement('div');
-                    connector.id = `axis-arrow-${idx}`;
-                    connector.className = "w-8 h-[2px] bg-claro-gray-medium shrink-0 relative flex items-center justify-center transition-all";
-                    connector.innerHTML = "<span class='absolute text-[8px] text-claro-gray-medium right-0 font-bold -top-[5px]'>➔</span>";
-                    axisContainer.appendChild(connector);
-                }
-            });
+  svg.innerHTML = s;
+}
 
-            subflowContainer.classList.remove('hidden');
+function textBlock(lines, cx, cy, cls){
+  const lh = 15;
+  const startY = cy - ((lines.length-1)*lh)/2 + 4;
+  return `<text class="${cls}" x="${cx}" y="${startY}" text-anchor="middle">` +
+    lines.map((line,i)=>`<tspan x="${cx}" dy="${i===0?0:lh}">${line}</tspan>`).join('') +
+    `</text>`;
+}
 
-            // Aplica os filtros na tela recém montada
-            applyFilters();
-        }
+/* ===================== DETAIL PANEL ===================== */
+function showDetail(id){
+  const n = nodeById[id];
+  if(!n || !n.desc) return;
+  document.getElementById('dtitle').textContent = n.lines.join(' ');
+  document.getElementById('dstep').textContent = `${n.step}  ·  Responsável: ${n.resp}`;
+  document.getElementById('dbody').innerHTML = `
+    <div class="field-label">Descrição do processo</div>
+    <div>${n.desc}</div>
+    <div class="field-label">Raia / Responsável</div>
+    <div>${n.resp}</div>
+    ${n.sla? `<div class="field-label">SLA</div><div>${n.sla}</div>` : ''}
+  `;
+  document.getElementById('detail').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeDetail(){
+  document.getElementById('detail').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
 
-        function applyFilters() {
-            const selectedResp = document.getElementById('filter-resp').value;
-            const selectedGestao = document.getElementById('filter-gestao').value;
+/* ===================== ZOOM ===================== */
+let scale = 1;
+function zoom(delta){
+  scale = delta===0 ? 1 : Math.min(1.4, Math.max(0.4, scale+delta));
+  document.getElementById('scaleWrap').style.transform = `scale(${scale})`;
+  document.getElementById('zlabel').textContent = Math.round(scale*100)+'%';
+}
 
-            const isFilterActive = (selectedResp !== 'ALL' || selectedGestao !== 'ALL');
+/* ===================== KPI BAR ===================== */
+function renderKPIs(){
+  const slaDays = {
+    'n2':2,'n3':2,'n4':4,'n6':1,'n7a':2,'n7b':5,'n7c':4,'n7d':3
+  };
+  const total = Object.values(slaDays).reduce((a,b)=>a+b,0);
+  const kpis = [
+    {label:'Etapas mapeadas', val:'7 + conclusão'},
+    {label:'Raias / responsáveis', val:'4'},
+    {label:'Lead time total estimado', val:total+' dias'},
+    {label:'Maior SLA individual', val:'5 dias (Recebimento NF)'},
+  ];
+  document.getElementById('kpiBar').innerHTML = kpis.map(k=>`
+    <div class="kpi-card"><div class="kval">${k.val}</div><div class="klabel">${k.label}</div></div>
+  `).join('');
+}
 
-            // 1. Filtragem da Malha do Fluxograma Horizontal Macro
-            const nodes = ['etapa1', 'etapa2', 'etapa3_semflag', 'etapa3_comflag', 'etapa4', 'etapa5'];
-            nodes.forEach(key => {
-                const nodeEl = document.getElementById(`flow-node-${key}`);
-                if (!nodeEl) return;
-
-                if (!isFilterActive) {
-                    nodeEl.classList.remove('filtered-out', 'filtered-in');
-                    return;
-                }
-
-                // Verifica se há alguma sub-etapa correspondente nesta macro
-                const match = vsmData[key].subSteps.some(s => {
-                    const mResp = (selectedResp === 'ALL' || s.resp === selectedResp);
-                    const mGestao = (selectedGestao === 'ALL' || s.gestao === selectedGestao);
-                    return mResp && mGestao;
-                });
-
-                if (match) {
-                    nodeEl.classList.remove('filtered-out');
-                    nodeEl.classList.add('filtered-in');
-                } else {
-                    nodeEl.classList.add('filtered-out');
-                    nodeEl.classList.remove('filtered-in');
-                }
-            });
-
-            // 2. Filtragem do Painel de Detalhes Interno Ativo
-            if (currentKey && vsmData[currentKey]) {
-                vsmData[currentKey].flow.forEach((item, index) => {
-                    const el = document.getElementById(`det-item-${index}`);
-                    if (!el) return;
-
-                    if (!isFilterActive) {
-                        el.classList.remove('filtered-out');
-                        // Se for split box, limpa as sub-caixas internas
-                        if (item.type === 'split') {
-                            item.items.forEach((_, sIdx) => {
-                                document.getElementById(`split-sub-${sIdx}`)?.classList.remove('filtered-out');
-                            });
-                        }
-                        return;
-                    }
-
-                    if (item.isInfo) {
-                        // Se houver algum match na etapa inteira, deixa a info visível
-                        const anyMatch = vsmData[currentKey].subSteps.some(s => {
-                            return (selectedResp === 'ALL' || s.resp === selectedResp) && (selectedGestao === 'ALL' || s.gestao === selectedGestao);
-                        });
-                        anyMatch ? el.classList.remove('filtered-out') : el.classList.add('filtered-out');
-                        return;
-                    }
-
-                    if (item.type === 'split') {
-                        let anySubMatch = false;
-                        item.items.forEach((sub, sIdx) => {
-                            const subEl = document.getElementById(`split-sub-${sIdx}`);
-                            const mResp = (selectedResp === 'ALL' || sub.resp === selectedResp);
-                            const mGestao = (selectedGestao === 'ALL' || sub.gestao === selectedGestao);
-                            
-                            if (mResp && mGestao) {
-                                subEl?.classList.remove('filtered-out');
-                                anySubMatch = true;
-                            } else {
-                                subEl?.classList.add('filtered-out');
-                            }
-                        });
-                        anySubMatch ? el.classList.remove('filtered-out') : el.classList.add('filtered-out');
-                    } else {
-                        const mResp = (selectedResp === 'ALL' || el.getAttribute('data-resp') === selectedResp);
-                        const mGestao = (selectedGestao === 'ALL' || el.getAttribute('data-gestao') === selectedGestao);
-                        (mResp && mGestao) ? el.classList.remove('filtered-out') : el.classList.add('filtered-out');
-                    }
-                });
-
-                // 3. Filtragem dos Nós da Esteira Horizontal Inferior
-                vsmData[currentKey].subSteps.forEach((step, idx) => {
-                    const nodeEl = document.getElementById(`axis-node-${idx}`);
-                    const arrowEl = document.getElementById(`axis-arrow-${idx}`);
-                    if (!nodeEl) return;
-
-                    if (!isFilterActive) {
-                        nodeEl.classList.remove('filtered-out');
-                        if (arrowEl) arrowEl.classList.remove('filtered-out');
-                        return;
-                    }
-
-                    const mResp = (selectedResp === 'ALL' || step.resp === selectedResp);
-                    const mGestao = (selectedGestao === 'ALL' || step.gestao === selectedGestao);
-
-                    if (mResp && mGestao) {
-                        nodeEl.classList.remove('filtered-out');
-                        if (arrowEl) arrowEl.classList.remove('filtered-out');
-                    } else {
-                        nodeEl.classList.add('filtered-out');
-                        if (arrowEl) arrowEl.classList.add('filtered-out');
-                    }
-                });
-            }
-        }
-
-        function resetFilters() {
-            document.getElementById('filter-resp').value = 'ALL';
-            document.getElementById('filter-gestao').value = 'ALL';
-            applyFilters();
-        }
-    </script>
+renderSidebar();
+renderSVG();
+renderKPIs();
+</script>
 </body>
 </html>
